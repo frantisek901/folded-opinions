@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-06-29 FranÈesko
-## Edited:   2023-07-03 FranÈesko
+## Edited:   2023-07-04 FranÈesko
 
 ## NOTES:
 ## 1) What vars we do need for agents?
@@ -24,6 +24,7 @@ rm(list = ls())
 library(tidyverse)
 library(scatterplot3d)
 library(rgl)
+library(cusp)
 
 
 
@@ -34,43 +35,43 @@ it = Sys.time()  # Initialization time
 N = 1000  # number of agents
 v = 6  # number of agents' variables/columns
 maxInfo = 1  # Maximum capacity of the information silo
-aa = 2.5  # Average acceptance of others infoBias/opinion
+aa = 0.55    # Average acceptance of others infoBias/opinion
 aasd = 0.05  # SD of average acceptance
-majFrac = 0.75  # Fraction of the majority
-majPosMin = .05  # Minimum of positive information of majority
-majPosMax = .15  # Maximum of positive information of majority
-majNegMin = .05  # Minimum of negative information of majority
-majNegMax = .15  # Maximum of negative information of majority
-minPosMin = .05  # Minimum of positive information of minority
-minPosMax = .15  # Maximum of positive information of minority
-minNegMin = .80  # Minimum of negative information of minority
-minNegMax = 1.0  # Maximum of negative information of minority
+# majFrac = 0.75  # Fraction of the majority
+# majPosMin = .05  # Minimum of positive information of majority
+# majPosMax = .15  # Maximum of positive information of majority
+# majNegMin = .05  # Minimum of negative information of majority
+# majNegMax = .15  # Maximum of negative information of majority
+# minPosMin = .05  # Minimum of positive information of minority
+# minPosMax = .15  # Maximum of positive information of minority
+# minNegMin = .80  # Minimum of negative information of minority
+# minNegMax = 1.0  # Maximum of negative information of minority
+# majInOpAv = 0.00   # Average initial opinion of majority
+# majInOpSD = 0.01   # SD of initial opinion of majority
+# minInOpAv = -0.8   # Average initial opinion of minority
+# minInOpSD = 0.15   # SD of initial opinion of minority
+# foldingPoint = 0.05       # Folding point
+# forgeting = 0.95          # Rate of information kept in info silos
+# communicationRate = 0.45  # How many agents initiate communication
+# attentionDenom = sqrt(2)  # Denominator for calculating Attention
+
+
+majFrac = 0.50  # Fraction of the majority
+majPosMin = .00  # Minimum of positive information of majority
+majPosMax = .25  # Maximum of positive information of majority
+majNegMin = .00  # Minimum of negative information of majority
+majNegMax = .25  # Maximum of negative information of majority
+minPosMin = .00  # Minimum of positive information of minority
+minPosMax = .25  # Maximum of positive information of minority
+minNegMin = .00  # Minimum of negative information of minority
+minNegMax = .25  # Maximum of negative information of minority
 majInOpAv = 0.00   # Average initial opinion of majority
-majInOpSD = 0.01   # SD of initial opinion of majority
-minInOpAv = -0.8   # Average initial opinion of minority
-minInOpSD = 0.15   # SD of initial opinion of minority
-foldingPoint = 0.05       # Folding point
+majInOpSD = 0.05   # SD of initial opinion of majority
+minInOpAv = 0.00   # Average initial opinion of minority
+minInOpSD = 0.05   # SD of initial opinion of minority
+foldingPoint = 0.95       # Folding point
 forgeting = 0.95          # Rate of information kept in info silos
-communicationRate = 0.45  # How many agents initiate communication
-attentionDenom = sqrt(2)  # Denominator for calculating Attention
-
-
-majFrac = 0.5  # Fraction of the majority
-majPosMin = .25  # Minimum of positive information of majority
-majPosMax = .75  # Maximum of positive information of majority
-majNegMin = .05  # Minimum of negative information of majority
-majNegMax = .15  # Maximum of negative information of majority
-minPosMin = .05  # Minimum of positive information of minority
-minPosMax = .15  # Maximum of positive information of minority
-minNegMin = .25  # Minimum of negative information of minority
-minNegMax = .75  # Maximum of negative information of minority
-majInOpAv = 0.50   # Average initial opinion of majority
-majInOpSD = 0.15   # SD of initial opinion of majority
-minInOpAv = -0.5   # Average initial opinion of minority
-minInOpSD = 0.15   # SD of initial opinion of minority
-foldingPoint = 0.05       # Folding point
-forgeting = 0.95          # Rate of information kept in info silos
-communicationRate = 0.95  # How many agents initiate communication
+communicationRate = 0.15  # How many agents initiate communication
 attentionDenom = sqrt(2)  # Denominator for calculating Attention
 
 
@@ -214,14 +215,14 @@ plot3dS = function(mtrx = am, cols = 3:v, tit = tit) {
 
 }
 
-plot3dR = function(mtrx = am, cols = 3:v) {
+plot3dR = function(mtrx = am, cols = 2:v) {
   tb = mtrx[, cols] %>%
     as_tibble()
   plot3d(z = (tb$infoPos - tb$infoNeg), y = tb$attention, x = tb$opinion,
-                type = "p")
+         type = "s", size = .5, col = tb$acceptance)#"steelblue")
 
 }
-
+# plot3dR()
 
 ## Using functions
 # Plotting information
@@ -372,20 +373,6 @@ experiment = function() {
 
 }
 
-doBlock = function(steps = 20, poop = c(T, F, T, F)){
-st = Sys.time()
-for (i in 1:steps) {
-  am = simRound(Amin = foldingPoint, pia = communicationRate, forgeting = forgeting,
-                buyingOpinion = T, bootstrap = T,
-                titleStart = paste0("Round ", i),
-                plotting = poop[1], oh = poop[2], oip = poop[3], p3d = poop[4])
-  print(paste0(i, ": (sum)", round(sum(am[, c("infoNeg", "infoPos")]), 2),
-               "; (-)", round(sum(am[, "infoNeg"]), 2),
-               "; (+)", round(sum(am[, "infoPos"]), 2)))
-}
-print(Sys.time() - st)
-plot3d(tit = "Block done!")
-}
 
 # Testing -----------------------------------------------------------------
 
@@ -399,7 +386,7 @@ opInfoPlot(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg
 infoHist(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
 #doBlock(steps = 100, poop = c(F, F, T, F))
 st = Sys.time()
-for (i in 1:400) {
+for (i in 1:100) {
   am = simRound(Amin = foldingPoint, pia = communicationRate, forgeting = forgeting,
                 buyingOpinion = T, bootstrap = T,
                 titleStart = paste0("Round ", i),
@@ -416,6 +403,4 @@ print(Sys.time() - it)
 opHist(col = 2, xlab = "Acceptance", limits = c(0, 3))
 infoPlot()
 opInfoPlot()
-#doBlock(10)
-
 
