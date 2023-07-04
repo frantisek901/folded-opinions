@@ -274,9 +274,13 @@ plot3dR = function(mtrx = am, cols = 2:v) {
       a2 = agm[p,]
 
       ## for each communicating pair: exchange information and update info sila
+      ## NOTE: In this version I prepared only "buying opinion" possibility,
+      ## just in case of need of further extension by possibility of direct
+      ## exchange of information I let the buying of opinion embeded in
+      ## if() function. So double-czech that 'buyingOpinion = T':
       if (buyingOpinion) {
-        ## Block for accomodating InfoBias according others opinion:
-        # Firstly, we do agent'i':
+        ### Block for accomodating InfoBias according others opinion:
+        ## Firstly, we do agent'i':
         if (abs(a1["opinion"] - a2["opinion"]) <= a1["acceptance"]) {
           if (a2["opinion"] > 0) {
             agm[i, "infoPos"] = (agm[i, "infoPos"] + a2["opinion"])
@@ -293,10 +297,13 @@ plot3dR = function(mtrx = am, cols = 2:v) {
             # If agent 'i' has positive opinion, adds it to positive silo:
             agm[i, "infoPos"] = (agm[i, "infoPos"] + a1["opinion"])
             if (agm[i, "infoPos"] > 1) agm[i, "infoPos"] = 1  # Cut-off, of course!
+          } else {
+            # If agent 'i' has negative opinion, adds it to negative silo:
+            agm[i, "infoNeg"] = (agm[i, "infoNeg"] - a1["opinion"])
+            if (agm[i, "infoNeg"] > 1) agm[i, "infoNeg"] = 1  # Cut-off, of course!
           }
-
         }
-        #  Secondly, we do agent'p':
+        ##  Secondly, we do agent'p':
         if (abs(a2["opinion"] - a1["opinion"]) <= a2["acceptance"]) {
           if (a1["opinion"] > 0) {
             agm[p, "infoPos"] = (agm[p, "infoPos"] + a1["opinion"])
@@ -306,28 +313,17 @@ plot3dR = function(mtrx = am, cols = 2:v) {
             if (agm[p, "infoNeg"] > 1) agm[p, "infoNeg"] = 1
           }
         }
-      } else {
-        ## Block for accomodating InfoBias according others opinion:
-        #  Firstly, we do agent'i':
-        if (abs(a1["infoPos"] - a1["infoNeg"] -
-                a2["infoPos"] + a2["infoNeg"]) <= a1["acceptance"]) {
-          if (a2["infoNeg"] < a2["infoPos"]) {
-            agm[i, "infoPos"] = (agm[i, "infoPos"] + a2["infoPos"] - a2["infoNeg"]) #* forgeting
-            if (agm[i, "infoPos"] > 1) agm[i, "infoPos"] = 1
+        # According to Han van der Maas we have also do same reinforcement of
+        # 'p' opinion, so we have to add its opinion to respective info silo:
+        if (reinforce) {
+          if (a2["opinion"] >= 0) {
+            # If agent 'p' has positive opinion, adds it to positive silo:
+            agm[p, "infoPos"] = (agm[p, "infoPos"] + a2["opinion"])
+            if (agm[p, "infoPos"] > 1) agm[p, "infoPos"] = 1  # Cut-off, of course!
           } else {
-            agm[i, "infoNeg"] = (agm[i, "infoNeg"] + a2["infoNeg"] - a2["infoPos"]) #* forgeting
-            if (agm[i, "infoNeg"] > 1) agm[i, "infoNeg"] = 1
-          }
-        }
-        #  Secondly, we do agent'p':
-        if (abs(a2["infoPos"] - a2["infoNeg"] -
-                a1["infoPos"] + a1["infoNeg"]) <= a2["acceptance"]) {
-          if (a1["infoNeg"] < a1["infoPos"]) {
-            agm[p, "infoPos"] = (agm[p, "infoPos"] + a1["infoPos"] - a1["infoNeg"]) #* forgeting
-            if (agm[p, "infoPos"] > 1) agm[p, "infoPos"] = 1
-          } else {
-            agm[p, "infoNeg"] = (agm[p, "infoNeg"] + a1["infoNeg"] - a1["infoPos"]) #* forgeting
-            if (agm[p, "infoNeg"] > 1) agm[p, "infoNeg"] = 1
+            # If agent 'ip' has negative opinion, adds it to negative silo:
+            agm[p, "infoNeg"] = (agm[p, "infoNeg"] - a2["opinion"])
+            if (agm[p, "infoNeg"] > 1) agm[p, "infoNeg"] = 1  # Cut-off, of course!
           }
         }
       }
@@ -408,11 +404,21 @@ experiment =
 # Testing -----------------------------------------------------------------
 
 
-# am = mx
-# am == mx
-# am == simRound()
-
+# just testing newly added reinforcement...
+N = 1000
+v = 6
+aa = 2.5
+aasd = 0.05
+foldingPoint = 0.05
+forgeting = 0.37
+communicationRate = 0.65
+attentionDenom = sqrt(2)
+am = createPublic()
+cm = createMatrix()
+mx = am
 am = mx
+
+
 opInfoPlot(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
 infoHist(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
 #doBlock(steps = 100, poop = c(F, F, T, F))
@@ -430,8 +436,8 @@ print(Sys.time() - st)
 plot3dR()
 opHist()
 plot3dS(tit = "Now")
-print(Sys.time() - it)
 opHist(col = 2, xlab = "Acceptance", limits = c(0, 3))
 infoPlot()
 opInfoPlot()
 
+# Nice results!
