@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-06-29 FranÈesko
-## Edited:   2023-07-04 FranÈesko
+## Edited:   2023-07-05 FranÈesko
 
 ## NOTES:
 ## 1) What vars we do need for agents?
@@ -133,7 +133,7 @@ createPublic =
 }
 
 
-mx = am
+#mx = am
 
 # communication matrix ----------------------------------------------------
 
@@ -141,7 +141,7 @@ mx = am
 # For now we create directed network, i.e. A can initiate conversation
 # with B, but B can't do the same with A.
 
-createMatrix = function(N = 1000, neis = 6.1, nsd = 1.2) {
+createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
   # Again, constants first
   # neis = neis  # Average number of directed neighbors
   # nsd = nsd  # SD of number of directed neighbors
@@ -149,11 +149,11 @@ createMatrix = function(N = 1000, neis = 6.1, nsd = 1.2) {
 
   # Creation of vector 'V' of IDs, where the number of IDs represents
   # how many connections the respective agent will have:
-  V = map(1:N, ~ rep(.x, ceiling(rnorm(1, neis, nsd)))) %>% unlist()
+  V = map(1:NN, ~ rep(.x, ceiling(rnorm(1, neis, nsd)))) %>% unlist()
 
   # And now we can go through the vector and
   # randomly draw for the ID its comm. partner:
-  C = map(V, ~ sample(setdiff(1:N, .x), size = 1)) %>% unlist()
+  C = map(V, ~ sample(setdiff(1:NN, .x), size = 1)) %>% unlist()
 
   # Now using this vector for initialization of matrix of directed links:
   return(matrix(data = c(V, C), ncol = 2, byrow = F))
@@ -172,9 +172,7 @@ opHist = function(mtrx = am, col = v, bw = 0.2, fill = "orange", xlab = "opinion
     rename(opinion = value) %>%
     ggplot(aes(x = opinion)) +
     geom_density(col = fill, fill = fill, alpha = 0.3) +
-    # geom_histogram(fill = fill, binwidth = bw, closed = "right", center = 0) +
     scale_x_continuous(limits = limits) +
-    # scale_y_continuous(limits = c(0, 50)) +
     labs(x = xlab, title = tit) +
     theme_classic()
 }
@@ -187,9 +185,7 @@ infoHist = function(mtrx = am, cols = 3:4, bw = 0.2, fill = "steelblue",
     mutate(infoBias = infoBias - infoNeg) %>%
     ggplot(aes(x = infoBias)) +
     geom_density(col = fill, fill = fill, alpha = 0.3) +
-    # geom_histogram(fill = fill, binwidth = bw, closed = "right", center = 0) +
     scale_x_continuous(limits = limits) +
-    # scale_y_continuous(limits = c(0, 50)) +
     labs(x = xlab, title = tit) +
     theme_classic()
 }
@@ -255,7 +251,7 @@ plot3dR = function(mtrx = am, cols = 2:v) {
 #   agm = agent matrix
 #   cmm = communication matrix
 #   pia = fraction of agents selected for initializing communication
-  simRound = function(agm = am, cmm = cm, buyingOpinion = T, Amin = 0.5,
+  simRound = function(agm = agm, cmm = cmm, buyingOpinion = T, Amin = 0.5,
                     pia = 0.5, bootstrap = T, forgeting = 0.8, reinforce = T,
                     titleStart = "", plotting = T, oh = T, p3d = T, oip = T) {
     # Let's start with defining needed constants:
@@ -269,7 +265,7 @@ plot3dR = function(mtrx = am, cols = 2:v) {
     ## Let's do the rest inside FOR cycle:
     for (i in ia) {
       # select partners for initiative agents and store their copies
-      p = sample(cm[cm[, 1] == i, 2], size = 1)
+      p = sample(cmm[cmm[, 1] == i, 2], size = 1)
       a1 = agm[i,]  # NOTE-BEWARE!!! 'a1' becomes vector, not matrix! Same a2...
       a2 = agm[p,]
 
@@ -372,72 +368,150 @@ plot3dR = function(mtrx = am, cols = 2:v) {
 # Experiment function -----------------------------------------------------
 
 experiment =
-  function(opDistributionX = "fair", rounds = 100, Nx = N,
-           aax = aa, aasdx = aasd, foldingPointx = foldingPoint,
+  function(opDistributionX = "fair", rounds = 100, Nx = 1000, seedX = 1,
+           aax = aa, aasdx = aasd, foldingPointx = foldingPoint, printFlow = F,
            forgetingx = forgeting, communicationRatex = communicationRate) {
+  # Setting seed:
+  set.seed(seedX)
 
   # Initialization of the 'world' and network:
   agm = createPublic(N = Nx, aa = aax, aasd = aasdx, opDistribution = opDistributionX,
                      foldingPoint = foldingPointx, forgeting = forgetingx)
-  cmm = createMatrix()
-  mx = agm
-  print("Initialized!")
+  cmm = createMatrix(NN = Nx)
+  # print("Initialized!")
 
   # Simulation:
   for (r in 1:rounds) {
-    agm = simRound(agm = agm, cmm = cmm, buyingOpinion = T,
+    tS =  paste0("Round ", r, ":")
+    agm = simRound(agm = agm, cmm = cmm, buyingOpinion = T, reinforce = T,
                    forgeting = forgetingx, Amin = foldingPointx,
                    pia = communicationRatex, bootstrap = T,
-                   plotting = F, oh = F, p3d = F, oip = T,
-                   titleStart = paste0("Round ", r, ":"))
-    print(paste0("Round :", r))
+                   plotting = F, oh = F, p3d = F, oip = F,
+                   titleStart = tS)
+    if (printFlow) {
+      print(paste(tS, "(sum)", round(sum(agm[, 3:4]), 1),
+                  "(-)", round(sum(agm[, 4]), 1),
+                  "(+)", round(sum(agm[, 3]), 1),
+                  "(att)", round(sum(agm[, 5]), 1),
+                  "(op-)", round(sum(agm[agm[, 6] < 0, 6]), 1),
+                  "(op+)", round(sum(agm[agm[, 6] > 0, 6]), 1)))
+    }
   }
 
   # Calculating polarization:
+  op = agm[, "opinion"]
+  SD = sd(op)
+  manhattan = sum(abs(op)) / Nx
+  op1 = sort(op)[1:(Nx / 2)]
+  op2 = sort(op)[((Nx / 2) + 1):Nx]
+  ESBG = (mean(op2) - mean(op1)) / (sd(op1) + sd(op2) + 1)
+  frc = hist(op, breaks = c(-1, seq(-.81, .81, 0.18), 1), plot = F)$counts
+  fractions = frc / Nx
+  for (f in 2:11) {
+    fractions[f] = abs(fractions[f] - fractions[f - 1])
+  }
+  fractured = sum(fractions[1:11])
+
+  # Returning the tibble with inputs and results:
+  return(tibble(seed = seedX, opDistribution = opDistributionX,
+                communicationRate,
+                forgeting, foldingPoint, aa, aasd,
+                SD, manhattan, ESBG, fractured))
+}
 
 
 
-  return(agm)
+# Running experiment ------------------------------------------------------
+
+# Constants for sure:
+N = 1000
+v = 6
+attentionDenom = sqrt(2)
+
+# Creating empty tibble for storing results:
+results = tibble(seed = NA_integer_, opDistribution = NA_character_,
+                 foldingPoint = NA_real_, aa = NA_real_, aasd = NA_real_,
+                 forgeting = NA_real_, communicationRate = NA_real_,
+                 SD = NA_real_, manhattan = NA_real_,
+                 ESBG = NA_real_, fractured = NA_real_)
+
+# Set of FOR cycles
+startTime = Sys.time()
+SIM = 1
+for (seed in 1:50) {
+  for (opDistribution in c("Black Pete", "fair")) {
+    for (foldingPoint in c(.05, .35, .65, .95)) {
+      for (aa in c(.25, .50, 1, 1.5, 2)) {
+        for (aasd in c(.05, .25)) {
+          for (forgeting in c(.2, .45, .7, .95)) {
+            for (communicationRate in c(.15, .5, .85, 1.2, 1.55)) {
+              results = results %>%
+                add_row(
+                  experiment(
+                    seedX = seed, opDistributionX = opDistribution,
+                    foldingPointx = foldingPoint, aax = aa, aasdx = aasd,
+                    forgetingx = forgeting, communicationRatex = communicationRate,
+                    rounds = 100, Nx = 1000, printFlow = F
+                  )
+                )
+              print(
+                paste0("Simulation ", SIM," just done, time elapsed: ",
+                       round(Sys.time() - startTime, 2), ". (seed=", seed,
+                       ", distr=", opDistribution, ", folding=", foldingPoint,
+                       ", aa=", aa, ", aasd=", aasd, ", forgeting=", forgeting,
+                       ", comm.rate=", communicationRate, ", rounds=100).")
+              )
+              SIM = SIM + 1
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 
 # Testing -----------------------------------------------------------------
 
-
-# just testing newly added reinforcement...
-N = 1000
-v = 6
-aa = 2.5
-aasd = 0.05
-foldingPoint = 0.05
-forgeting = 0.37
-communicationRate = 0.65
-attentionDenom = sqrt(2)
-am = createPublic()
-cm = createMatrix()
-mx = am
-am = mx
-
-
-opInfoPlot(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
-infoHist(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
-#doBlock(steps = 100, poop = c(F, F, T, F))
-st = Sys.time()
-for (i in 1:100) {
-  am = simRound(Amin = foldingPoint, pia = communicationRate, forgeting = forgeting,
-                buyingOpinion = T, bootstrap = T,
-                titleStart = paste0("Round ", i),
-                plotting = F, oh = F, oip = T, p3d = F)
-  print(paste0(i, ": (sum)", round(sum(am[, c("infoNeg", "infoPos")]), 2),
-              "; (-)", round(sum(am[, "infoNeg"]), 2),
-              "; (+)", round(sum(am[, "infoPos"]), 2)))
-}
-print(Sys.time() - st)
-plot3dR()
-opHist()
-plot3dS(tit = "Now")
-opHist(col = 2, xlab = "Acceptance", limits = c(0, 3))
-infoPlot()
-opInfoPlot()
-
-# Nice results!
+# mxx =
+#   experiment(opDistributionX = "Black Pete", rounds = 10, Nx = 1000, foldingPointx = 0.5, forgetingx = 0.95,
+#              communicationRatex = 0.15, aax = 1.05)
+#
+# mxx
+#
+# # just testing newly added reinforcement...
+# aa = 2.5
+# aasd = 0.05
+# foldingPoint = 0.05
+# forgeting = 0.37
+# communicationRate = 0.65
+# am = createPublic()
+# cm = createMatrix()
+# mx = am
+# am = mx
+#
+#
+# opInfoPlot(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
+# infoHist(tit = paste("Round 0; Sum of information:", round(sum(am[, c("infoNeg", "infoPos")]), 2), "=", round(sum(am[, "infoNeg"]), 2), "+", round(sum(am[, "infoPos"]), 2)))
+# #doBlock(steps = 100, poop = c(F, F, T, F))
+# st = Sys.time()
+# for (i in 1:100) {
+#   am = simRound(Amin = foldingPoint, pia = communicationRate, forgeting = forgeting,
+#                 buyingOpinion = T, bootstrap = T,
+#                 titleStart = paste0("Round ", i),
+#                 plotting = F, oh = F, oip = T, p3d = F)
+#   print(paste0(i, ": (sum)", round(sum(am[, c("infoNeg", "infoPos")]), 2),
+#               "; (-)", round(sum(am[, "infoNeg"]), 2),
+#               "; (+)", round(sum(am[, "infoPos"]), 2)))
+# }
+# print(Sys.time() - st)
+# plot3dR()
+# opHist()
+# plot3dS(tit = "Now")
+# opHist(col = 2, xlab = "Acceptance", limits = c(0, 3))
+# infoPlot()
+# opInfoPlot()
+# mxx = experiment(rounds = 100, Nx = 1000)
+# mxx[[1]] %>% opHist()
+# mxx[[2]]
+# # Nice results!
