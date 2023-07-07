@@ -438,7 +438,7 @@ results = tibble(seed = NA_integer_, opDistribution = NA_character_,
 # Set of FOR cycles
 startTime = Sys.time()
 SIM = 1
-for (seed in 5:50) {
+for (seed in 12:50) {
   for (opDistribution in c("Black Pete", "fair")) {
     for (foldingPoint in c(.05, .35, .65, .95)) {
       for (aa in c(.25, .50, 1, 1.5, 2)) {
@@ -473,7 +473,7 @@ for (seed in 5:50) {
 
 # Saving ------------------------------------------------------------------
 
-save(results, file = "results_seeds_05-.RData")
+save(results, file = "results_seeds_12-.RData")
 
 
 # Testing -----------------------------------------------------------------
