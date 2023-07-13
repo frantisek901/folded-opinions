@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-07-12 FranÈesko
+## Edited:   2023-07-13 FranÈesko
 
 ## NOTES
 ##
@@ -17,7 +17,9 @@ library(tidyverse)
 library(stargazer)
 library(rgl)
 library(scatterplot3d)
-
+library(entropy)
+library(infotheo)
+library(philentropy)
 
 # Loading data ------------------------------------------------------------
 
@@ -54,7 +56,7 @@ tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 14, seed > 11))
 
 
-for (f in 14:20) {
+for (f in 14:22) {
   load(paste0("results_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb = tb %>%
@@ -176,7 +178,6 @@ stargazer(zc, xc, yc,
 
 
 
-
 # Visualizations ----------------------------------------------------------
 
 tx = tibble(tb, pra = predict(ya), prb = predict(yb), prc = predict(yc)) %>%
@@ -290,5 +291,65 @@ tx %>%
 
 
 
+# Information measures ----------------------------------------------------
+
+# Discretization of dataset
+td = tx %>%
+  select(foldingPoint, forgeting, communicationRate, SD, manhattan, ESBG,
+         pra, prb, prc, diff_a, diff_b, diff_c) %>%
+  infotheo::discretize(disc = "equalwidth")
+
+# Shannon entropy of results:
+for (v in 1:12) {
+  td[, v] %>% infotheo::entropy() %>% round(2) %>%
+    paste0("Entropy of variable ", names(td)[v], " is ", .) %>% print()
+}
+
+## Conditional information
+# SD
+condinformation(td[, 3], td[, 4])
+condinformation(td[, 3], td[, 4], td[, 2])
+condinformation(td[, 3], td[, 4], td[, 1])
+condinformation(td[, 3], td[, 4], td[, 10])
+condinformation(td[, 2], td[, 4])
+condinformation(td[, 2], td[, 4], td[, 3])
+condinformation(td[, 2], td[, 4], td[, 1])
+condinformation(td[, 2], td[, 4], td[, 10])
+condinformation(td[, 1], td[, 4])
+condinformation(td[, 1], td[, 4], td[, 3])
+condinformation(td[, 1], td[, 4], td[, 2])
+condinformation(td[, 1], td[, 4], td[, 10])
+
+# Manhattan
+condinformation(td[, 3], td[, 5])
+condinformation(td[, 3], td[, 5], td[, 2])
+condinformation(td[, 3], td[, 5], td[, 1])
+condinformation(td[, 3], td[, 5], td[, 11])
+condinformation(td[, 2], td[, 5])
+condinformation(td[, 2], td[, 5], td[, 3])
+condinformation(td[, 2], td[, 5], td[, 1])
+condinformation(td[, 2], td[, 5], td[, 11])
+condinformation(td[, 1], td[, 5])
+condinformation(td[, 1], td[, 5], td[, 3])
+condinformation(td[, 1], td[, 5], td[, 2])
+condinformation(td[, 1], td[, 5], td[, 11])
+
+# ESBG
+condinformation(td[, 3], td[, 6])
+condinformation(td[, 3], td[, 6], td[, 2])
+condinformation(td[, 3], td[, 6], td[, 1])
+condinformation(td[, 3], td[, 6], td[, 12])
+condinformation(td[, 2], td[, 6])
+condinformation(td[, 2], td[, 6], td[, 3])
+condinformation(td[, 2], td[, 6], td[, 1])
+condinformation(td[, 2], td[, 6], td[, 12])
+condinformation(td[, 1], td[, 6])
+condinformation(td[, 1], td[, 6], td[, 3])
+condinformation(td[, 1], td[, 6], td[, 2])
+condinformation(td[, 1], td[, 6], td[, 12])
 
 
+# Tests
+(rnorm(1000000) %>% entropy::discretize(10) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(10) %>% entropy::entropy(unit = "log10"))
+(rnorm(1000000) %>% entropy::discretize(100) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(100) %>% entropy::entropy(unit = "log10"))
+(rnorm(1000000) %>% entropy::discretize(1000) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(1000) %>% entropy::entropy(unit = "log10"))
