@@ -428,17 +428,17 @@ N = 1000
 v = 6
 attentionDenom = sqrt(2)
 
-# Creating empty tibble for storing results:
-results = tibble(seed = NA_integer_, opDistribution = NA_character_,
-                 foldingPoint = NA_real_, aa = NA_real_, aasd = NA_real_,
-                 forgeting = NA_real_, communicationRate = NA_real_,
-                 SD = NA_real_, manhattan = NA_real_,
-                 ESBG = NA_real_, fractured = NA_real_)
 
 # Set of FOR cycles
 startTime = Sys.time()
 SIM = 1
-for (seed in 12:50) {
+for (seed in 14:50) {
+  # Creating empty tibble for storing results:
+  results = tibble(seed = NA_integer_, opDistribution = NA_character_,
+                   foldingPoint = NA_real_, aa = NA_real_, aasd = NA_real_,
+                   forgeting = NA_real_, communicationRate = NA_real_,
+                   SD = NA_real_, manhattan = NA_real_,
+                   ESBG = NA_real_, fractured = NA_real_)
   for (opDistribution in c("Black Pete", "fair")) {
     for (foldingPoint in c(.05, .35, .65, .95)) {
       for (aa in c(.25, .50, 1, 1.5, 2)) {
@@ -468,12 +468,13 @@ for (seed in 12:50) {
       }
     }
   }
+  save(results, file = paste0("results_seeds_", seed, ".RData"))
 }
 
 
 # Saving ------------------------------------------------------------------
 
-save(results, file = "results_seeds_12-.RData")
+save(results, file = "results_seeds_12-13.RData")
 
 
 # Testing -----------------------------------------------------------------

@@ -1,0 +1,165 @@
+Legend:
+(1) model with just interaction of Forgeting and Communication rate
+(2) model with additive effects of Folding point, Forgeting and Communication rate
+(3) model with interactions of Folding point, Forgeting and Communication rate
+From R2 is apparent that we need the last model, with interaction of all thre important variables.
+Other variables are not much important, wich is very interesting e.g. in case of Latitude of acceptance --
+probably because that folded landscape organizes its own communication structure... 
+It will be interesting to see how the folded landscape influences other models!
+
+
+> stargazer(za, xa, ya,
++           omit.stat = c("f"), type = "text", omit = 12:85,
++           add.lines = "Coefficients for interactions were supressed!")
+
+======================================================================================================
+                                                                Dependent variable:                   
+                                              --------------------------------------------------------
+                                                                         SD                           
+                                                     (1)                (2)                (3)        
+------------------------------------------------------------------------------------------------------
+foldingPoint0.35                                                     -0.094***           0.166***     
+                                                                      (0.003)            (0.007)      
+                                                                                                      
+foldingPoint0.65                                                     -0.187***           0.150***     
+                                                                      (0.003)            (0.007)      
+                                                                                                      
+foldingPoint0.95                                                     -0.281***           0.230***     
+                                                                      (0.003)            (0.007)      
+                                                                                                      
+forgeting0.45                                     -0.064***          -0.035***           0.063***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+forgeting0.7                                       0.094***          -0.016***           0.326***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+forgeting0.95                                      0.483***           0.105***           0.820***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+communicationRate0.5                               0.445***           0.327***           0.669***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+communicationRate0.85                              0.565***           0.417***           0.859***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+communicationRate1.2                               0.608***           0.453***           0.928***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+communicationRate1.55                              0.621***           0.467***           0.955***     
+                                                   (0.006)            (0.003)            (0.007)      
+                                                                                                      
+foldingPoint0.35:forgeting0.45                                                                        
+                                                                                                      
+                                                                                                      
+------------------------------------------------------------------------------------------------------
+Coefficients for interactions were supressed!                                                         
+Observations                                        25,600             25,600             25,600      
+R2                                                  0.623              0.683              0.867       
+Adjusted R2                                         0.623              0.683              0.866       
+Residual Std. Error                           0.156 (df = 25580) 0.143 (df = 25589) 0.093 (df = 25520)
+======================================================================================================
+Note:                                                                      *p<0.1; **p<0.05; ***p<0.01
+> 
+> stargazer(zb, xb, yb,
++           omit.stat = c("f"), type = "text", omit = 12:85,
++           add.lines = "Coefficients for interactions were supressed!")
+
+======================================================================================================
+                                                                Dependent variable:                   
+                                              --------------------------------------------------------
+                                                                     manhattan                        
+                                                     (1)                (2)                (3)        
+------------------------------------------------------------------------------------------------------
+foldingPoint0.35                                                     -0.099***           0.081***     
+                                                                      (0.002)            (0.004)      
+                                                                                                      
+foldingPoint0.65                                                     -0.215***           0.071***     
+                                                                      (0.002)            (0.004)      
+                                                                                                      
+foldingPoint0.95                                                     -0.299***           0.128***     
+                                                                      (0.002)            (0.004)      
+                                                                                                      
+forgeting0.45                                     -0.039***          -0.027***           0.017***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+forgeting0.7                                       0.109***           0.059***           0.328***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+forgeting0.95                                      0.588***           0.191***           0.846***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+communicationRate0.5                               0.389***           0.308***           0.541***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+communicationRate0.85                              0.556***           0.420***           0.806***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+communicationRate1.2                               0.630***           0.471***           0.910***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+communicationRate1.55                              0.662***           0.495***           0.947***     
+                                                   (0.006)            (0.002)            (0.004)      
+                                                                                                      
+foldingPoint0.35:forgeting0.45                                                                        
+                                                                                                      
+                                                                                                      
+------------------------------------------------------------------------------------------------------
+Coefficients for interactions were supressed!                                                         
+Observations                                        25,600             25,600             25,600      
+R2                                                  0.707              0.770              0.959       
+Adjusted R2                                         0.707              0.770              0.958       
+Residual Std. Error                           0.142 (df = 25580) 0.126 (df = 25589) 0.053 (df = 25520)
+======================================================================================================
+Note:                                                                      *p<0.1; **p<0.05; ***p<0.01
+> 
+> stargazer(zc, xc, yc,
++           omit.stat = c("f"), type = "text", omit = 12:85,
++           add.lines = "Coefficients for interactions were supressed!")
+
+======================================================================================================
+                                                                Dependent variable:                   
+                                              --------------------------------------------------------
+                                                                        ESBG                          
+                                                     (1)                (2)                (3)        
+------------------------------------------------------------------------------------------------------
+foldingPoint0.35                                                     -0.064***           0.048***     
+                                                                      (0.002)            (0.007)      
+                                                                                                      
+foldingPoint0.65                                                     -0.132***           0.042***     
+                                                                      (0.002)            (0.007)      
+                                                                                                      
+foldingPoint0.95                                                     -0.188***           0.080***     
+                                                                      (0.002)            (0.007)      
+                                                                                                      
+forgeting0.45                                     -0.021***          -0.032***           0.015**      
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+forgeting0.7                                       0.064***          -0.022***           0.168***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+forgeting0.95                                      0.307***           0.058***           0.472***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+communicationRate0.5                               0.227***           0.170***           0.309***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+communicationRate0.85                              0.348***           0.246***           0.511***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+communicationRate1.2                               0.420***           0.290***           0.648***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+communicationRate1.55                              0.453***           0.310***           0.709***     
+                                                   (0.005)            (0.002)            (0.007)      
+                                                                                                      
+foldingPoint0.35:forgeting0.45                                                                        
+                                                                                                      
+                                                                                                      
+------------------------------------------------------------------------------------------------------
+Coefficients for interactions were supressed!                                                         
+Observations                                        25,600             25,600             25,600      
+R2                                                  0.534              0.588              0.763       
+Adjusted R2                                         0.534              0.588              0.763       
+Residual Std. Error                           0.122 (df = 25580) 0.115 (df = 25589) 0.087 (df = 25520)
+======================================================================================================
+Note:    
