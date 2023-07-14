@@ -56,7 +56,7 @@ tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 14, seed > 11))
 
 
-for (f in 14:22) {
+for (f in 14:26) {
   load(paste0("results_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb = tb %>%
@@ -297,59 +297,113 @@ tx %>%
 td = tx %>%
   select(foldingPoint, forgeting, communicationRate, SD, manhattan, ESBG,
          pra, prb, prc, diff_a, diff_b, diff_c) %>%
-  infotheo::discretize(disc = "equalwidth")
+  infotheo::discretize(disc = "equalwidth") %>%
+  mutate(combinationCrFFp = communicationRate * 10000 + forgeting * 100 + foldingPoint )
 
 # Shannon entropy of results:
-for (v in 1:12) {
+for (v in 1:13) {
   td[, v] %>% infotheo::entropy() %>% round(2) %>%
     paste0("Entropy of variable ", names(td)[v], " is ", .) %>% print()
 }
 
+
 ## Conditional information
 # SD
-condinformation(td[, 3], td[, 4])
+exp(condinformation(td[, 13], td[, 4])) %>% log(base = 80)
+exp(condinformation(td[, 3], td[, 4])) %>% log(base = 5)
 condinformation(td[, 3], td[, 4], td[, 2])
 condinformation(td[, 3], td[, 4], td[, 1])
 condinformation(td[, 3], td[, 4], td[, 10])
-condinformation(td[, 2], td[, 4])
+exp(condinformation(td[, 2], td[, 4])) %>% log(base = 4)
 condinformation(td[, 2], td[, 4], td[, 3])
 condinformation(td[, 2], td[, 4], td[, 1])
 condinformation(td[, 2], td[, 4], td[, 10])
-condinformation(td[, 1], td[, 4])
+exp(condinformation(td[, 1], td[, 4])) %>% log(base = 4)
 condinformation(td[, 1], td[, 4], td[, 3])
 condinformation(td[, 1], td[, 4], td[, 2])
 condinformation(td[, 1], td[, 4], td[, 10])
 
 # Manhattan
-condinformation(td[, 3], td[, 5])
+exp(condinformation(td[, 13], td[, 5])) %>% log(base = 80)
+exp(condinformation(td[, 3], td[, 5])) %>% log(base = 5)
 condinformation(td[, 3], td[, 5], td[, 2])
 condinformation(td[, 3], td[, 5], td[, 1])
 condinformation(td[, 3], td[, 5], td[, 11])
-condinformation(td[, 2], td[, 5])
+exp(condinformation(td[, 2], td[, 5])) %>% log(base = 4)
 condinformation(td[, 2], td[, 5], td[, 3])
 condinformation(td[, 2], td[, 5], td[, 1])
 condinformation(td[, 2], td[, 5], td[, 11])
-condinformation(td[, 1], td[, 5])
+exp(condinformation(td[, 1], td[, 5])) %>% log(base = 4)
 condinformation(td[, 1], td[, 5], td[, 3])
 condinformation(td[, 1], td[, 5], td[, 2])
 condinformation(td[, 1], td[, 5], td[, 11])
 
 # ESBG
-condinformation(td[, 3], td[, 6])
-condinformation(td[, 3], td[, 6], td[, 2])
-condinformation(td[, 3], td[, 6], td[, 1])
-condinformation(td[, 3], td[, 6], td[, 12])
-condinformation(td[, 2], td[, 6])
-condinformation(td[, 2], td[, 6], td[, 3])
-condinformation(td[, 2], td[, 6], td[, 1])
-condinformation(td[, 2], td[, 6], td[, 12])
-condinformation(td[, 1], td[, 6])
-condinformation(td[, 1], td[, 6], td[, 3])
-condinformation(td[, 1], td[, 6], td[, 2])
-condinformation(td[, 1], td[, 6], td[, 12])
+exp(condinformation(td[, 13], td[, 6])) %>% log(base = 80)
+exp(condinformation(td[, 3], td[, 6])) %>% log(base = 5)
+exp(condinformation(td[, 3], td[, 6], td[, 2])) %>% log(base = 5)  ## Is this base correct?
+exp(condinformation(td[, 3], td[, 6], td[, 1])) %>% log(base = 5)  ## Why is then possible that 2 vars predicts more than 3?
+exp(condinformation(td[, 3], td[, 6], td[, 12])) %>% log(base = 5)
+exp(condinformation(td[, 2], td[, 6])) %>% log(base = 4)
+exp(condinformation(td[, 2], td[, 6], td[, 3])) %>% log(base = 4)
+exp(condinformation(td[, 2], td[, 6], td[, 1])) %>% log(base = 4)
+exp(condinformation(td[, 2], td[, 6], td[, 12])) %>% log(base = 4)
+exp(condinformation(td[, 1], td[, 6])) %>% log(base = 4)
+exp(condinformation(td[, 1], td[, 6], td[, 3])) %>% log(base = 4)
+exp(condinformation(td[, 1], td[, 6], td[, 2])) %>% log(base = 4)
+exp(condinformation(td[, 1], td[, 6], td[, 12])) %>% log(base = 4)
 
 
-# Tests
+## Combination -- which fraction of full information explains?
+# Mutual information
+mutinformation(td[, c(1:13)]) %>% round(2)
+
+# Normalized mutual information
+exp(mutinformation(td[, 13], td[, 5])) %>% log(base = 80) %>% round(3) %>% paste0("Manhattan: ", .)
+exp(mutinformation(td[, 13], td[, 4])) %>% log(base = 80) %>% round(3) %>% paste0("SD: ", .)
+exp(mutinformation(td[, 13], td[, 6])) %>% log(base = 80) %>% round(3) %>% paste0("ESBG: ", .)
+
+# Fraction of variable-self mutual information
+for (v in c(5, 4, 6)) {
+  val = (100 * mutinformation(td[, 13], td[, v]) / mutinformation(td[, v], td[, v])) %>% round(2)
+  paste0("Combination CrFFp explains: ", val,
+         "% of posible information of variable '", names(td)[v], "'.") %>% print()
+}
+
+# R^2 of regression models
+stargazer(yb, ya, yc, type = "text", omit = 1:85,
+          add.lines = "All coefficients were supressed!")
+# Note: Ah yeah... normalized mutual info < fraction of mutual info < R^2.
+#       Why it is so? Why is so apparent difference between R^2 and info measures?
+#       R^2 tells us how much variability from mean we explained, so if in case of
+#       'Manhattan' explained 96%, why the fraction of mutual information is only 63%?
+#       Is it the case how entropy works, i.e. for explaining the resting 4% of variability
+#       we need the resting 37%? Or information does not explain only variability from mean,
+#       but also the mean itself and for this we need that 30+%?
+#       Information seems more relaxed than R^2, but in case of our mode it works otherwise...
+#
+
+
+
+## Testing materials
 (rnorm(1000000) %>% entropy::discretize(10) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(10) %>% entropy::entropy(unit = "log10"))
 (rnorm(1000000) %>% entropy::discretize(100) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(100) %>% entropy::entropy(unit = "log10"))
 (rnorm(1000000) %>% entropy::discretize(1000) %>% entropy::entropy(unit = "log10")) / (runif(1000000) %>% entropy::discretize(1000) %>% entropy::entropy(unit = "log10"))
+
+# All fractions
+for (v in 4:12) {
+  val = (100 * mutinformation(td[, 13], td[, v]) / mutinformation(td[, v], td[, v])) %>% round(2)
+  paste0("Combination CrFFp explains: ", val,
+         "% of posible information of variable '", names(td)[v], "'.") %>% print()
+}
+
+# Single 2D discretization in use
+discretize2d(tb$manhattan, tb$SD, 10, 10, c(0, 1), c(0, 1))
+discretize2d(tb$manhattan, tb$SD, 10, 10, c(0, 1), c(0, 1)) %>%
+  mi.plugin(unit = "log10")
+
+
+
+
+
+
