@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-07-13 FranÈesko
+## Edited:   2023-07-14 FranÈesko
 
 ## NOTES
 ##
@@ -56,7 +56,7 @@ tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 14, seed > 11))
 
 
-for (f in 14:26) {
+for (f in 14:27) {
   load(paste0("results_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb = tb %>%
@@ -190,16 +190,16 @@ tx = tibble(tb, pra = predict(ya), prb = predict(yb), prc = predict(yc)) %>%
 # plot3d(x = tx$communicationRate, y = tx$forgeting, z = tx$pr, type = "s", size = .5, col = hcl.colors(5, palette = "Tropic"))
 # plot3d(x = tx$communicationRate, y = tx$forgeting, z = tx$manhattan, type = "s", size = .5, col = tx$foldingPoint)
 #
-# ty = tb %>%
-#   mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
-#          forgeting = as.character(forgeting) %>% as.numeric()) %>%
-#   group_by(communicationRate, forgeting, foldingPoint) %>%
-#   summarise(SD = mean(SD), manhattan = mean(manhattan), ESBG = mean(ESBG)) %>%
-#   arrange(ESBG)
-#
-# plot3d(x = ty$communicationRate, y = ty$forgeting, z = ty$ESBG, type = "s", size = .5, col = rainbow(4))
-#
-# plot3d(x = tb$SD, y = tb$manhattan, z = tb$ESBG, type = "s", size = .5, col = rainbow(25600))
+ty = tb %>%
+  mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
+         forgeting = as.character(forgeting) %>% as.numeric()) %>%
+  group_by(communicationRate, forgeting, foldingPoint) %>%
+  summarise(SD = mean(SD), manhattan = mean(manhattan), ESBG = mean(ESBG)) %>%
+  arrange(ESBG)
+
+plot3d(x = ty$communicationRate, y = ty$foldingPoint, z = ty$ESBG, type = "s", size = .5, col = rainbow(4))
+
+plot3d(x = tb$SD, y = tb$manhattan, z = tb$ESBG, type = "s", size = .5, col = rainbow(25600))
 
 
 ## Final plots
@@ -285,6 +285,27 @@ tx %>%
 tx %>%
   ggplot() +
   aes(x = (ESBG), y = (prc)) +
+  geom_bin_2d(binwidth = c(0.025, 0.025)) +
+  scale_fill_viridis_c() +
+  theme_classic()
+
+tx %>%
+  ggplot() +
+  aes(x = (pra), y = (diff_a)) +
+  geom_bin_2d(binwidth = c(0.025, 0.025)) +
+  scale_fill_viridis_c() +
+  theme_classic()
+
+tx %>%
+  ggplot() +
+  aes(x = (prb), y = (diff_b)) +
+  geom_bin_2d(binwidth = c(0.025, 0.025)) +
+  scale_fill_viridis_c() +
+  theme_classic()
+
+tx %>%
+  ggplot() +
+  aes(x = (prc), y = (diff_c)) +
   geom_bin_2d(binwidth = c(0.025, 0.025)) +
   scale_fill_viridis_c() +
   theme_classic()
