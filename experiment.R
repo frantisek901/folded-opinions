@@ -474,7 +474,7 @@ for (seed in 14:50) {
 
 # Saving ------------------------------------------------------------------
 
-save(results, file = "results_seeds_12-13.RData")
+# save(results, file = "results_seeds_12-13.RData")
 
 
 # Testing -----------------------------------------------------------------
