@@ -1,6 +1,7 @@
-#### Main script for project with Guga on folded opinion, EXP3
-#### In this version we avoid latitude of acceptance,
-#### but we employ diversified memorizing of info
+#### Main script for project with Guga on folded opinion, EXP4
+#### In this version we avoid latitude of acceptance and diversified memorizing of info.
+#### Despite the Folding point is given by issue, let's just look
+#### what happens when we employ some individual variability into it.
 
 ## Encoding: windows-1250
 ## Created:  2023-06-29 Fran»esko
@@ -9,7 +10,7 @@
 ## NOTES:
 ## 1) What vars we do need for agents?
 ##    ID
-##    memorizing
+##    folding point
 ##    infoPos
 ##    infoNeg
 ##    attention
@@ -34,14 +35,14 @@ library(cusp)
 
 createPublic =
   function(opDistribution = "Black Pete", N = 1000,
-           foldingPoint = 0.05, forgeting = 0.95, forget_sd = 0.1,
+           foldingPoint = 0.05, folding_sd = 0.1,
            attentionDenom = sqrt(2)) {
   # Needed constants
   N = N  # number of agents
   v = 6  # number of agents' variables/columns
-  foldingPoint = foldingPoint  # Folding point
-  forgeting = forgeting  # Average rate of information kept in info silos
-  forget_sd = forget_sd  # SD of average remembering
+  foldingPoint = foldingPoint  # Average folding point
+  folding_sd = folding_sd  # SD of average folding point
+  # forgeting = forgeting  # Rate of information kept in info silos
   attentionDenom = attentionDenom  # Denominator for calculating Attention
 
   ## Constants for "Black Pete" scenario
@@ -64,16 +65,16 @@ createPublic =
   # init of empty matrix
   am = matrix(data = rep(1:N, times = v, N * v),
               ncol = v, byrow = F)  # We initialize whole matrix by IDs in every column.
-  colnames(am) = c("ID", "memorizing", "infoPos", "infoNeg", "attention", "opinion")
+  colnames(am) = c("ID", "folding", "infoPos", "infoNeg", "attention", "opinion")
 
   # Creating values in vars 2:6
   for (i in 1:N) {
     # Acceptance
-    x = rnorm(n = 1, mean = forgeting, sd = forget_sd)
+    x = rnorm(n = 1, mean = foldingPoint, sd = folding_sd)
     while (x <= 0 | x >= 1) {
-      x = rnorm(n = 1, mean = forgeting, sd = forget_sd)
+      x = rnorm(n = 1, mean = foldingPoint, sd = folding_sd)
     }
-    am[i, "memorizing"] = x
+    am[i, "folding"] = x
 
     # Information
     am[i, "infoPos"] = if_else(
@@ -110,7 +111,7 @@ createPublic =
     }
   }
   # Initially processed opinion
-  am[, "opinion"] = -am[, "opinion"] ^ 3 + (am[, "infoPos"] + am[, "infoNeg"] - foldingPoint) * (am[, "opinion"]) + (am[, "infoPos"] - am[, "infoNeg"])
+  am[, "opinion"] = -am[, "opinion"] ^ 3 + (am[, "infoPos"] + am[, "infoNeg"] - am[, "folding"]) * (am[, "opinion"]) + (am[, "infoPos"] - am[, "infoNeg"])
   am[am[, "opinion"] > 1, "opinion"] = 1
   am[am[, "opinion"] < -1, "opinion"] = -1
   return(am)
@@ -161,7 +162,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
 #   agm = agent matrix
 #   cmm = communication matrix
 #   pia = fraction of agents selected for initializing communication
-  simRound = function(agm = agm, cmm = cmm, Amin = 0.5, pia = 0.5, bootstrap = T, reinforce = T) {
+  simRound = function(agm = agm, cmm = cmm, forgeting = 0.5, pia = 0.5, bootstrap = T, reinforce = T) {
     # Let's start with defining needed constants:
     NN = nrow(agm)
 
@@ -232,13 +233,13 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
     agm[agm[, "attention"] > 1, "attention"] = 1
 
     #          opinion of all agents
-    agm[, "opinion"] = -agm[, "opinion"] ^ 3 + (agm[, "infoPos"] + agm[, "infoNeg"] - Amin) * (agm[, "opinion"]) + (agm[, "infoPos"] - agm[, "infoNeg"])
+    agm[, "opinion"] = -agm[, "opinion"] ^ 3 + (agm[, "infoPos"] + agm[, "infoNeg"] - agm[, "folding"]) * (agm[, "opinion"]) + (agm[, "infoPos"] - agm[, "infoNeg"])
     agm[agm[, "opinion"] > 1, "opinion"] = 1
     agm[agm[, "opinion"] < -1, "opinion"] = -1
 
     #          memory/information
-    agm[, "infoPos"] = agm[, "infoPos"] * agm[, "memorizing"]
-    agm[, "infoNeg"] = agm[, "infoNeg"] * agm[, "memorizing"]
+    agm[, "infoPos"] = agm[, "infoPos"] * forgeting
+    agm[, "infoNeg"] = agm[, "infoNeg"] * forgeting
 
     ## Giving back updated matrix
     agm
@@ -250,28 +251,29 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
 
 experiment =
   function(opDistributionX = "Black Pete", rounds = 100, Nx = 1000, seedX = 1,
-           foldingPointx = foldingPoint, reinforceX = reinforce,
-           forgetingx = forgeting, forget_sdx = forget_sd, communicationRatex = communicationRate) {
+           reinforceX = reinforce, forgetingX = forgeting,
+           foldingX = foldingPoint,  folding_sdX = folding_sd,
+           communicationRateX = communicationRate) {
   # Setting seed:
   set.seed(seedX)
 
   # Initialization of the 'world' and network:
   agm = createPublic(N = Nx, opDistribution = opDistributionX,
-                     foldingPoint = foldingPointx, forgeting = forgetingx, forget_sd = forget_sdx)
+                     foldingPoint = foldingX, folding_sd = folding_sdX)
   cmm = createMatrix(NN = Nx)
   # print("Initialized!")
 
   # Simulation:
   for (r in 1:rounds) {
-    agm = simRound(agm = agm, cmm = cmm, Amin = foldingPointx,
-                   pia = communicationRatex, bootstrap = T, reinforce = reinforceX)
+    agm = simRound(agm = agm, cmm = cmm, forgeting = forgetingX,
+                   pia = communicationRateX, bootstrap = T, reinforce = reinforceX)
   }
 
   # Calculating polarization:
   op =  sort(agm[, "opinion"])
   SD = sd(op)
   manhattan = sum(abs(op)) / Nx
-  op1 =op[1:(Nx / 2)]
+  op1 = op[1:(Nx / 2)]
   op2 = op[((Nx / 2) + 1):Nx]
   ESBG = (mean(op2) - mean(op1)) / (sd(op1) + sd(op2) + 1)
 
@@ -280,7 +282,8 @@ experiment =
 
   # Returning the tibble with inputs and results:
   return(tibble(seed = seedX, reinforce = reinforceX,
-                communicationRate, forgeting, forget_sd, foldingPoint,
+                communicationRate = communicationRateX, forgeting = forgetingX,
+                foldingPoint = foldingX, folding_sd = folding_sdX,
                 SD, manhattan, ESBG, opDistribution = opDistributionX))
 }
 
@@ -298,41 +301,41 @@ reinforce = TRUE
 # Set of FOR cycles
 startTime = Sys.time()
 SIM = 1
-for (seed in 17:50) {
+for (seed in 1:50) {
   # Creating empty tibble for storing results:
   results = tibble(seed = NA_integer_, reinforce = NA,
                    communicationRate = NA_real_, forgeting = NA_real_,
-                   forget_sd = NA_real_, foldingPoint = NA_real_,
+                   foldingPoint = NA_real_, folding_sd = NA_real_,
                    SD = NA_real_, manhattan = NA_real_,
                    ESBG = NA_real_, opDistribution = NA_character_)
-  for (foldingPoint in c(.05, .35, .65, .95)) {
-    for (forgeting in c(.2, .45, .7, .75, .8, .85, .9, .95)) {
-      for (forget_sd in c(0.025, 0.05, 0.1, 0.15)) {
-            for (communicationRate in c(.05, .15, .25, .35, .45, .55, .65, .75, .85, .95)) {
+  for (communicationRate in c(.05, .15, .25, .35, .45, .55, .65, .75, .85, .95)) {
+    for (forgeting in c(.2, .45, .7, .95)) {
+      for (foldingPoint in c(.05, .15, .25, .35, .45, .55, .65, .75, .85, .95)) {
+        for (folding_sd in c(0, 0.025, 0.05, 0.1, 0.15)) {
               results = results %>%
                 add_row(
                   experiment(
                     seedX = seed, reinforceX = reinforce,
-                    communicationRatex = communicationRate,
-                    forgetingx = forgeting, forget_sdx = forget_sd,
-                    foldingPointx = foldingPoint,
+                    communicationRateX = communicationRate,
+                    forgetingX = forgeting, folding_sdX = folding_sd,
+                    foldingX = foldingPoint,
                     rounds = 100, Nx = 1000, opDistributionX = "Black Pete"
                   )
                 )
               print(
                 paste0("Simulation ", SIM," just done, time elapsed: ",
                        round(Sys.time() - startTime, 2), ". (seed=", seed,
-                       ", folding=", foldingPoint, ", forgeting=", forgeting,
-                       ", forget_sd=", forget_sd,
+                       ", forgeting=", forgeting, ", folding=", foldingPoint,
+                       ", folding_sd=", folding_sd,
                        ", comm.rate=", communicationRate, ", rounds=100).")
               )
               SIM = SIM + 1
-            }
-          }
+        }
+      }
     }
   }
 # Saving ------------------------------------------------------------------
-  save(results, file = paste0("results3_seeds_", seed, ".RData"))
+  save(results, file = paste0("results4_seeds_", seed, ".RData"))
 }
 
 
