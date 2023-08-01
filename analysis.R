@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-07-24 FranÈesko
+## Edited:   2023-08-01 FranÈesko
 
 ## NOTES
 ##
@@ -473,7 +473,7 @@ ggsave("15-withReinforcingSD.png", width = 7.5, height = 5.5)
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 32
+completedSeeds = 50
 
 # Core of 'tb3' consists of relevant variables and observations from 'tb2'
 # which stores results of second experiment:
@@ -705,7 +705,7 @@ stargazer(yb3, ya3, yc3, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 6
+completedSeeds = 32
 
 # Loading results of the first seed
 load("results4_seeds_1.RData")
@@ -811,7 +811,7 @@ tx4 = tibble(tb4, pra = predict(ya4), prb = predict(yb4), prc = predict(yc4)) %>
          diff_b = manhattan - prb,
          diff_c = ESBG - prc)
 
-ty4 = tb4 %>%
+ty4 = tb4 %>% #filter(forgeting == "0.2") %>%
   mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
          foldingPoint = as.character(foldingPoint) %>% as.numeric(),
          forgeting = as.character(forgeting) %>% as.numeric()) %>%
@@ -827,10 +827,10 @@ plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$ESBG, type = "s"
 plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$SD, type = "s", size = .5, col = rainbow(4))
 plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$manhattan, type = "s", size = .5, col = rainbow(4))
 plot3d(x = ty4$SD, y = ty4$manhattan, z = ty4$ESBG, type = "s", size = .5, col = rainbow(4))
-plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
-plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$SD_sd, type = "s", size = .5, col = rainbow(4))
-plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$manhattan_sd, type = "s", size = .5, col = rainbow(4))
-plot3d(x = ty4$SD_sd, y = ty4$manhattan_sd, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$SD_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$manhattan_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$SD_sd, y = ty4$manhattan_sd, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
 
 
 
@@ -876,7 +876,7 @@ exp(mutinformation(td4[, 13], td4[, 6])) %>% log(base = 320) %>% round(3) %>% pa
 for (v in c(5, 4, 6)) {
   val = (100 * mutinformation(td4[, 13], td4[, v]) / mutinformation(td4[, v], td4[, v])) %>% round(2)
   paste0("Combination CrFFp explains: ", val,
-         "% of posible information of variable '", names(td3)[v], "'.") %>% print()
+         "% of posible information of variable '", names(td4)[v], "'.") %>% print()
 }
 
 # R^2 of regression models
@@ -884,22 +884,209 @@ stargazer(yb4, ya4, yc4, type = "text", omit = 1:805,
           add.lines = "All coefficients were supressed!")
 # Note: Ah yeah, still: normalized mutual info < fraction of mutual info < R^2.
 #
-#       Now, normalized mutual info is much lower than in EXP1, but it's probably because in EXP1 the
-#       base for log was 80, now in EXP3 it is 320, and we know that higher base/more bars means
-#       the entropy of normal distribution is closer to entropy of uniform distribution,
-#       i.e. entropy is higher and so information is lower.
+#       The main result is that 'folding_sd' brings some variability to model behavior,
+#       but nothing systematic. The model is still dominated only by:
+#       Folding point, Memory/Forgetting and Communication rate.
 #
-#       Fraction of possible information explained is now higher in comparison with EXP1. Why?
-#       I hope it is cos' we now work in smaller parameter space and mutual info is more precise.
-#       But is it true?
+#       So, model is dominated by system parameters:
+#       -- Folding point is very probably given by issue or societal perception of it
+#       -- Communication rate is given by the system
+#          (OK, it might be agregated, how much agents want to communicate)
+#       -- Memory/Forgetting is given by human nature and used technology
 #
-#       R^2 is now around 97%. Mutual information (fraction, normalized) is little bit
-#       lower in EXP3 than in EXP2. Probably it is because that memory/forgetting variance
-#       brings in EXP3 extra variability which is not included in EXP2
-#       (after filtering out reinforce==FALSE there are no other sources of variability,
-#       we use in EXP2 only same parameters which we use for model estimation)
 #
-#       The main result is that 'forget_sd' brings some variability to model behavior,
+#
+
+
+
+# Experiment #5 -----------------------------------------------------------
+
+# Loading data ------------------------------------------------------------
+
+# Useful constant -- how many seeds are completely simulated:
+completedSeeds = 6
+
+# Loading results of the first seed
+load("results5_seeds_1.RData")
+
+# Preparing base of 'tb4' from 'results'
+tb5 = results %>% drop_na()
+
+# Adding data from the third experiment:
+for (f in 2:completedSeeds) {
+  load(paste0("results5_seeds_", f, ".RData"))
+  results =  results %>% drop_na()
+  tb5 = tb5 %>%
+    add_row(results)
+}
+
+# Normalization of ESBG and factorisation of other variables:
+tb5 = tb5 %>%
+  mutate(
+    ESBG = ESBG / 2,
+    across(reinforce:neis_sd, ~ factor(.x)))
+
+
+
+# Analysis ----------------------------------------------------------------
+
+tb5 %>%
+  select(communicationRate, neis_sd, SD:ESBG) %>%
+  pivot_longer(cols = SD:ESBG, names_to = "Measure") %>%
+  ggplot() +
+  aes(x = value) +
+  facet_grid(vars(#communicationRate,
+    neis_sd), vars(Measure), scales = "free", labeller = "label_both") +
+  geom_histogram(fill = "steelblue", alpha = 0.4) +
+  theme_classic()
+# ggsave("00-try.png", height = 49, width = 6)
+
+# NOTE: Mhmmm... Still it doesn't seem the diversity makes difference...
+#
+tb5 %>%
+  group_by(neis_sd, communicationRate) %>%
+  summarise(ESBG = mean(ESBG), SD = mean(SD), Manhattan = mean(manhattan)) %>%
+  ungroup() %>%
+  pivot_longer(Manhattan:ESBG, names_to = "Measure") %>%
+  ggplot() +
+  aes(x = communicationRate, y = neis_sd, size = value * 30,
+      label = round(value, 2), col = Measure) +
+  facet_grid(vars(Measure)) +
+  geom_point(alpha = 0.6) +
+  geom_text(col = "black", size = 5) +
+  scale_size_identity() +
+  guides(col = "none") +
+  theme_classic()
+# We also see it here...
+
+
+
+# regression --------------------------------------------------------------
+
+# za5 = lm(SD ~  forgeting * communicationRate,
+#          data = tb4)
+# xa5 = lm(SD ~ foldingPoint + forgeting + communicationRate,
+#          data = tb4)
+ya5 = lm(SD ~ foldingPoint * forgeting * communicationRate,
+         data = tb5)
+# zb4 = lm(manhattan ~ forgeting * communicationRate,
+#          data = tb4)
+# xb4 = lm(manhattan ~ foldingPoint + forgeting + communicationRate,
+#          data = tb4)
+yb5 = lm(manhattan ~ foldingPoint * forgeting * communicationRate,
+         data = tb5)
+# zc4 = lm(ESBG ~ forgeting * communicationRate,
+#          data = tb4)
+# xc4 = lm(ESBG ~ foldingPoint + forgeting + communicationRate,
+#          data = tb4)
+yc5 = lm(ESBG ~ foldingPoint * forgeting * communicationRate,
+         data = tb5)
+
+## Final tables
+stargazer(#za4, xa4,
+          ya5, yb5, yc5,
+          omit.stat = c("f"), type = "text", omit = 13:1605,
+          add.lines = "Coefficients for interactions were supressed!")
+
+# stargazer(#zb4, xb4,
+#           yb5,
+#           omit.stat = c("f"), type = "text", omit = 23:1605,
+#           add.lines = "Coefficients for interactions were supressed!")
+#
+# stargazer(#zc4, xc4,
+#           yc5,
+#           omit.stat = c("f"), type = "text", omit = 23:1605,
+#           add.lines = "Coefficients for interactions were supressed!")
+# Note: OK, it seems that omitting 'folding_sd' makes no difference,
+#       so we might not play with this variable...
+#
+
+
+
+# Visualizations ----------------------------------------------------------
+
+tx5 = tibble(tb5, pra = predict(ya5), prb = predict(yb5), prc = predict(yc5)) %>%
+  mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
+         foldingPoint = as.character(foldingPoint) %>% as.numeric(),
+         forgeting = as.character(forgeting) %>% as.numeric(),
+         diff_a = SD - pra,
+         diff_b = manhattan - prb,
+         diff_c = ESBG - prc)
+
+ty5 = tb5 %>% #filter(forgeting == "0.2") %>%
+  mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
+         foldingPoint = as.character(foldingPoint) %>% as.numeric(),
+         forgeting = as.character(forgeting) %>% as.numeric()) %>%
+  group_by(communicationRate, forgeting, neis_sd,
+           foldingPoint) %>%
+  summarise(SD_sd = sd(SD), manhattan_sd = sd(manhattan), ESBG_sd = sd(ESBG),
+            SD = mean(SD), manhattan = mean(manhattan), ESBG = mean(ESBG)) %>%
+  arrange(communicationRate, foldingPoint, neis_sd,
+          forgeting)
+
+# 3D graphs
+plot3d(x = ty5$communicationRate, y = ty5$foldingPoint, z = ty5$ESBG, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty5$communicationRate, y = ty5$foldingPoint, z = ty5$SD, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty5$communicationRate, y = ty5$foldingPoint, z = ty5$manhattan, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty5$SD, y = ty4$manhattan, z = ty5$ESBG, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$SD_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$manhattan_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty4$SD_sd, y = ty4$manhattan_sd, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+
+
+
+## Final plots
+# All polarization measures:
+png("41-allMeasures.png")
+tb5 %>%  select(manhattan, SD, ESBG) %>%
+  scatterplot3d(highlight.3d = T, main = "All polarization measures")
+dev.off()
+
+png("42-SD.png")
+tx5 %>%  select(forgeting, communicationRate, pra) %>%
+  scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
+dev.off()
+
+png("43-Manhattan.png")
+tx5 %>%  select(forgeting, communicationRate, prb) %>%
+  scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
+dev.off()
+
+png("44-ESBG.png")
+tx5 %>%  select(forgeting, communicationRate, prc) %>%
+  scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
+dev.off()
+
+
+
+# Information measures ----------------------------------------------------
+
+# Discretization of dataset
+td5 = tx5 %>%
+  select(foldingPoint, forgeting, communicationRate, SD, manhattan, ESBG,
+         pra, prb, prc, diff_a, diff_b, diff_c) %>%
+  infotheo::discretize(disc = "equalwidth") %>%
+  mutate(combinationCrFFp = communicationRate * 10000 + forgeting * 100 + foldingPoint )
+
+# Normalized mutual information
+exp(mutinformation(td5[, 13], td5[, 5])) %>% log(base = 320) %>% round(3) %>% paste0("Manhattan: ", .)
+exp(mutinformation(td5[, 13], td5[, 4])) %>% log(base = 320) %>% round(3) %>% paste0("SD: ", .)
+exp(mutinformation(td5[, 13], td5[, 6])) %>% log(base = 320) %>% round(3) %>% paste0("ESBG: ", .)
+
+# Fraction of variable-self mutual information
+for (v in c(5, 4, 6)) {
+  val = (100 * mutinformation(td5[, 13], td5[, v]) / mutinformation(td5[, v], td5[, v])) %>% round(2)
+  paste0("Combination CrFFp explains: ", val,
+         "% of posible information of variable '", names(td5)[v], "'.") %>% print()
+}
+
+# R^2 of regression models
+stargazer(yb5, ya5, yc5, type = "text", omit = 1:805,
+          add.lines = "All coefficients were supressed!")
+# Note: Ah yeah, still: normalized mutual info < fraction of mutual info < R^2.
+#
+#       The main result is that 'neis_sd' brings some variability to model behavior,
 #       but nothing systematic. The model is still dominated only by:
 #       Folding point, Memory/Forgetting and Communication rate.
 #
@@ -909,7 +1096,13 @@ stargazer(yb4, ya4, yc4, type = "text", omit = 1:805,
 #          (OK, it might be agregated, how much agents want to communicate)
 #       -- Memory/Forgetting is given by human nature and used technology
 #
+#       So, where to go now?
+#       a) structure/topology of communication network
+#       b) initialization data -- details of "Black Pete scenario"
+#       c) weight of own opinion in the reinforcement sub-model/sub-algorithm
 #
 #
+
+
 
 
