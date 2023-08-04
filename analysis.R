@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-08-02 FranÈesko
+## Edited:   2023-08-04 FranÈesko
 
 ## NOTES
 ##
@@ -705,7 +705,7 @@ stargazer(yb3, ya3, yc3, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 36
+completedSeeds = 42
 
 # Loading results of the first seed
 load("results4_seeds_1.RData")
@@ -904,7 +904,7 @@ stargazer(yb4, ya4, yc4, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 23
+completedSeeds = 48
 
 # Loading results of the first seed
 load("results5_seeds_1.RData")
@@ -1110,7 +1110,7 @@ stargazer(yb5, ya5, yc5, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 19
+completedSeeds = 48
 
 # Loading results of the first seed
 load("results6_seeds_1.RData")
@@ -1338,7 +1338,7 @@ stargazer(yb6, ya6, yc6, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 2
+completedSeeds = 22
 
 # Loading results of the first seed
 load("results7_seeds_1.RData")
@@ -1421,12 +1421,32 @@ yb7 = lm(manhattan ~ foldingPoint * forgeting * communicationRate,
          data = tb7)
 yc7 = lm(ESBG ~ foldingPoint * forgeting * communicationRate,
          data = tb7)
+# wa7 = lm(SD ~ foldingPoint * forgeting * communicationRate * meanWeight, data = tb7)
+# wb7 = lm(manhattan ~ foldingPoint * forgeting * communicationRate * meanWeight, data = tb7)
+# wc7 = lm(ESBG ~ foldingPoint * forgeting * communicationRate * meanWeight, data = tb7)
+# va7 = lm(SD ~ foldingPoint * forgeting * communicationRate * sdFractionWeight, data = tb7)
+# vb7 = lm(manhattan ~ foldingPoint * forgeting * communicationRate * sdFractionWeight, data = tb7)
+# vc7 = lm(ESBG ~ foldingPoint * forgeting * communicationRate * sdFractionWeight, data = tb7)
+# ua7 = lm(SD ~ foldingPoint * forgeting * communicationRate * meanWeight * sdFractionWeight, data = tb7)
+# ub7 = lm(manhattan ~ foldingPoint * forgeting * communicationRate * meanWeight * sdFractionWeight, data = tb7)
+# uc7 = lm(ESBG ~ foldingPoint * forgeting * communicationRate * meanWeight * sdFractionWeight, data = tb7)
 
 ## Final tables
 stargazer(ya7, yb7, yc7,
   omit.stat = c("f"), type = "text", omit = 13:1605,
   add.lines = "Coefficients for interactions were supressed!")
-
+# stargazer(wa7, wb7, wc7,
+#           omit.stat = c("f"), type = "text", omit = 15:1605,
+#           add.lines = "Coefficients for interactions were supressed!")
+# stargazer(va7, vb7, vc7,
+#           omit.stat = c("f"), type = "text", omit = 15:1605,
+#           add.lines = "Coefficients for interactions were supressed!")
+# stargazer(ua7, ub7, uc7,
+#           omit.stat = c("f"), type = "text", omit = 17:1605,
+#           add.lines = "Coefficients for interactions were supressed!")
+# OK! So, this weight doesn't explain polarization independently,
+# despite the original models can't explain cca 15% in case of SD and ESBG.
+# And the main contributor is meanWeight, not SD of it.
 
 
 # Visualizations ----------------------------------------------------------
@@ -1446,17 +1466,18 @@ ty7 = tb7 %>% #filter(forgeting == "0.2") %>%
   group_by(communicationRate, forgeting, meanWeight, sdFractionWeight, foldingPoint) %>%
   summarise(SD_sd = sd(SD), manhattan_sd = sd(manhattan), ESBG_sd = sd(ESBG),
             SD = mean(SD), manhattan = mean(manhattan), ESBG = mean(ESBG)) %>%
-  arrange(communicationRate, foldingPoint, meanWeight, sdFractionWeight, forgeting)
+  arrange(communicationRate, foldingPoint, sdFractionWeight, meanWeight, forgeting)
 
 # 3D graphs
-plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$ESBG, type = "s", size = .5, col = rainbow(9))
-plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$SD, type = "s", size = .5, col = rainbow(9))
-plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$manhattan, type = "s", size = .5, col = rainbow(9))
-plot3d(x = ty7$SD, y = ty7$manhattan, z = ty7$ESBG, type = "s", size = .5, col = rainbow(9))
+plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$ESBG, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$SD, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty7$communicationRate, y = ty7$foldingPoint, z = ty7$manhattan, type = "s", size = .5, col = rainbow(4))
+plot3d(x = ty7$SD, y = ty7$manhattan, z = ty7$ESBG, type = "s", size = .5, col = rainbow(4))
 # plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
 # plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$SD_sd, type = "s", size = .5, col = rainbow(4))
 # plot3d(x = ty4$communicationRate, y = ty4$foldingPoint, z = ty4$manhattan_sd, type = "s", size = .5, col = rainbow(4))
-# plot3d(x = ty4$SD_sd, y = ty4$manhattan_sd, z = ty4$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = ty7$SD_sd, y = ty7$manhattan_sd, z = ty7$ESBG_sd, type = "s", size = .5, col = rainbow(4))
+# plot3d(x = tx7$diff_a, y = tx7$diff_b, z = tx7$diff_c, type = "s", size = .5, col = rainbow(4))
 
 
 
@@ -1510,23 +1531,57 @@ stargazer(yb7, ya7, yc7, type = "text", omit = 1:805,
           add.lines = "All coefficients were supressed!")
 # Note: Ah yeah, still: normalized mutual info < fraction of mutual info < R^2.
 #
-#       The main result is that 'neis' brings more variability to model behavior,
+#       The main result is that 'weight of reinforced opinion'
+#       brings more variability to model behavior,
 #       but despite it is systematic (it brings variability for certain regions and
-#       certain not) the effect of 'neis' is secondary, the model is still dominated only by:
+#       certain not) the effect is still secondary, the model is still dominated only by:
 #       Folding point, Memory/Forgetting and Communication rate.
 #
 #       So, model is dominated by system parameters:
 #       -- Folding point is very probably given by issue
 #       -- Communication rate is given by the system
-#          (OK, it might be agregated, how much agents want to communicate)
+#          (OK, it might be aggregated, how much agents want to communicate)
 #       -- Memory/Forgetting is given by human nature and used technology
 #       -- and average number of communication partners is of secondary effect
+#       -- also secondary, but much bigger effect has the weight of reinforced opinion, mainly the average of it
 #
 #       So, where to go now?
-#       Definitely the structure/topology of communication network!
-#       Secondary effect of average comm. partners shows that network structure matters!
+#       a) structure/topology of communication network
+#       b) initialization data -- details of "Black Pete scenario"
 #
 #
+
+
+
+# Experiment #8 -----------------------------------------------------------
+
+# Loading data ------------------------------------------------------------
+
+# Useful constant -- how many seeds are completely simulated:
+completedSeeds = 2
+
+# Loading results of the first seed
+load("results8_seeds_1.RData")
+
+# Preparing base of 'tb4' from 'results'
+tb8 = results %>% drop_na()
+
+# Adding data from the third experiment:
+for (f in 2:completedSeeds) {
+  load(paste0("results8_seeds_", f, ".RData"))
+  results =  results %>% drop_na()
+  tb8 = tb8 %>%
+    add_row(results)
+}
+
+# Normalization of ESBG and factorisation of other variables:
+tb8 = tb8 %>%
+  mutate(
+    ESBG = ESBG / 2,
+    across(reinforce:sdFractionWeight, ~ factor(.x)))
+
+
+
 
 
 

@@ -304,7 +304,7 @@ reinforce = TRUE
 # Set of FOR cycles
 startTime = Sys.time()
 SIM = 1
-for (seed in 1:50) {
+for (seed in 14:50) {
   # Creating empty tibble for storing results:
   results = tibble(seed = NA_integer_, reinforce = NA,
                    communicationRate = NA_real_, forgeting = NA_real_,
