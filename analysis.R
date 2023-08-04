@@ -1338,7 +1338,7 @@ stargazer(yb6, ya6, yc6, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 22
+completedSeeds = 25
 
 # Loading results of the first seed
 load("results7_seeds_1.RData")
@@ -1558,7 +1558,7 @@ stargazer(yb7, ya7, yc7, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 2
+completedSeeds = 8
 
 # Loading results of the first seed
 load("results8_seeds_1.RData")
@@ -1581,6 +1581,28 @@ tb8 = tb8 %>%
     across(reinforce:sdFractionWeight, ~ factor(.x)))
 
 
+
+# Analysis ----------------------------------------------------------------
+
+# Computing mean values of opinion, information and attention
+df = tb8 %>% select(1, 4:7, SD:ESBG, starts_with(paste0("b_f", c("o", "a", "i") , "_" ))) %>%
+  pivot_longer(cols = 9:41, names_prefix = "b_f", names_sep = "_",
+               names_to = c("Measure", "weight"), names_transform = list(weight = as.integer)) %>%
+  mutate(weight = if_else(Measure == "a", -.1 + weight * 0.1,  -1.2 + weight * 0.2) %>% round(1),
+         value = value * weight * 0.001,
+         Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "o" ~ "Opinion")) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, SD, manhattan, ESBG, Measure) %>%
+  summarise(value = sum(value)) %>% ungroup() %>%
+  pivot_wider(id_cols = 1:8, names_from = "Measure") %>%
+  arrange(seed, meanWeight, foldingPoint, communicationRate, forgeting)#%>%
+  # filter(communicationRate == 0.65, forgeting == 0.45)
+
+# Graph 3D
+plot3d(x = df$Information, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(4))
+plot3d(x = df$SD, y = df$manhattan, z = df$ESBG, type = "s", size = .5, col = rainbow(4))
+plot3d(x = df$manhattan, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
+plot3d(x = df$SD, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
+plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
 
 
 

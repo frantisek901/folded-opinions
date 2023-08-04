@@ -269,6 +269,7 @@ experiment =
   y2 = (hist(agm[, "attention"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
   y3 = (hist(agm[, "infoPos"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
   y4 = (hist(agm[, "infoNeg"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
+  y6 = (hist((agm[, "infoPos"] + agm[, "infoNeg"]), breaks = seq(from = -0.1, to = 2.1, by = 0.2), plot = F))$count
   y5 = (hist((agm[, "infoPos"] - agm[, "infoNeg"]), breaks = seq(from = -1.1, to = 1.1, by = 0.2), plot = F))$count
 
   # Simulation:
@@ -290,9 +291,10 @@ experiment =
   x2 = (hist(agm[, "attention"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
   x3 = (hist(agm[, "infoPos"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
   x4 = (hist(agm[, "infoNeg"], breaks = seq(from = -.05, to = 1.05, by = 0.1), plot = F))$count
+  x6 = (hist((agm[, "infoPos"] + agm[, "infoNeg"]), breaks = seq(from = -0.1, to = 2.1, by = 0.2), plot = F))$count
   x5 = (hist((agm[, "infoPos"] - agm[, "infoNeg"]), breaks = seq(from = -1.1, to = 1.1, by = 0.2), plot = F))$count
-  print(paste0("Results: ESBG=", round(ESBG / 2, 2), "; SD=", round(SD, 2), "; Manhattan=", round(manhattan, 2),
-               "; Init. Op.: ", paste(y1, collapse = ", "), "; Fin. Op.: ", paste(x1, collapse = ", ")))
+  # print(paste0("Results: ESBG=", round(ESBG / 2, 2), "; SD=", round(SD, 2), "; Manhattan=", round(manhattan, 2),
+  #              "; Init. Op.: ", paste(y1, collapse = ", "), "; Fin. Op.: ", paste(x1, collapse = ", ")))
 
 
   # Returning the tibble with inputs and results:
@@ -308,6 +310,8 @@ experiment =
                 b_ipi_7 = y3[7], b_ipi_8 = y3[8], b_ipi_9 = y3[9], b_ipi_10 = y3[10], b_ipi_11 = y3[11],
                 b_ini_1 = y4[1], b_ini_2 = y4[2], b_ini_3 = y4[3], b_ini_4 = y4[4], b_ini_5 = y4[5], b_ini_6 = y4[6],
                 b_ini_7 = y4[7], b_ini_8 = y4[8], b_ini_9 = y4[9], b_ini_10 = y4[10], b_ini_11 = y4[11],
+                b_isi_1 = y6[1], b_isi_2 = y6[2], b_isi_3 = y6[3], b_isi_4 = y6[4], b_isi_5 = y6[5], b_isi_6 = y6[6],
+                b_isi_7 = y6[7], b_isi_8 = y6[8], b_isi_9 = y6[9], b_isi_10 = y6[10], b_isi_11 = y6[11],
                 b_ii_1 = y5[1], b_ii_2 = y5[2], b_ii_3 = y5[3], b_ii_4 = y5[4], b_ii_5 = y5[5], b_ii_6 = y5[6],
                 b_ii_7 = y5[7], b_ii_8 = y5[8], b_ii_9 = y5[9], b_ii_10 = y5[10], b_ii_11 = y5[11],
                 SD, manhattan, ESBG,
@@ -319,6 +323,8 @@ experiment =
                 b_fpi_7 = x3[7], b_fpi_8 = x3[8], b_fpi_9 = x3[9], b_fpi_10 = x3[10], b_fpi_11 = x3[11],
                 b_fni_1 = x4[1], b_fni_2 = x4[2], b_fni_3 = x4[3], b_fni_4 = x4[4], b_fni_5 = x4[5], b_fni_6 = x4[6],
                 b_fni_7 = x4[7], b_fni_8 = x4[8], b_fni_9 = x4[9], b_fni_10 = x4[10], b_fni_11 = x4[11],
+                b_fsi_1 = x6[1], b_fsi_2 = x6[2], b_fsi_3 = x6[3], b_fsi_4 = x6[4], b_fsi_5 = x6[5], b_fsi_6 = x6[6],
+                b_fsi_7 = x6[7], b_fsi_8 = x6[8], b_fsi_9 = x6[9], b_fsi_10 = x6[10], b_fsi_11 = x6[11],
                 b_fi_1 = x5[1], b_fi_2 = x5[2], b_fi_3 = x5[3], b_fi_4 = x5[4], b_fi_5 = x5[5], b_fi_6 = x5[6],
                 b_fi_7 = x5[7], b_fi_8 = x5[8], b_fi_9 = x5[9], b_fi_10 = x5[10], b_fi_11 = x5[11]))
 }
@@ -338,8 +344,8 @@ sdFractionWeight = 0
 # Set of FOR cycles
 startTime = Sys.time()
 SIM = 1
-y1 = rep(-1, 11); y2 = y1; y3 = y1; y4 = y1; y5 = y1
-x1 = y1; x2 = y1; x3 = y1; x4 = y1; x5 = y1
+y1 = rep(-1, 11); y2 = y1; y3 = y1; y4 = y1; y5 = y1; y6 = y1
+x1 = y1; x2 = y1; x3 = y1; x4 = y1; x5 = y1; x6 = y1
 for (seed in 1:50) {
   # Creating empty tibble for storing results:
   results = tibble(seed = NA_integer_, opDistribution = NA_character_, reinforce = NA,
@@ -354,6 +360,8 @@ for (seed in 1:50) {
                    b_ipi_7 = y3[7], b_ipi_8 = y3[8], b_ipi_9 = y3[9], b_ipi_10 = y3[10], b_ipi_11 = y3[11],
                    b_ini_1 = y4[1], b_ini_2 = y4[2], b_ini_3 = y4[3], b_ini_4 = y4[4], b_ini_5 = y4[5], b_ini_6 = y4[6],
                    b_ini_7 = y4[7], b_ini_8 = y4[8], b_ini_9 = y4[9], b_ini_10 = y4[10], b_ini_11 = y4[11],
+                   b_isi_1 = y6[1], b_isi_2 = y6[2], b_isi_3 = y6[3], b_isi_4 = y6[4], b_isi_5 = y6[5], b_isi_6 = y6[6],
+                   b_isi_7 = y6[7], b_isi_8 = y6[8], b_isi_9 = y6[9], b_isi_10 = y6[10], b_isi_11 = y6[11],
                    b_ii_1 = y5[1], b_ii_2 = y5[2], b_ii_3 = y5[3], b_ii_4 = y5[4], b_ii_5 = y5[5], b_ii_6 = y5[6],
                    b_ii_7 = y5[7], b_ii_8 = y5[8], b_ii_9 = y5[9], b_ii_10 = y5[10], b_ii_11 = y5[11],
                    SD = NA_real_, manhattan = NA_real_, ESBG = NA_real_,
@@ -365,6 +373,8 @@ for (seed in 1:50) {
                    b_fpi_7 = x3[7], b_fpi_8 = x3[8], b_fpi_9 = x3[9], b_fpi_10 = x3[10], b_fpi_11 = x3[11],
                    b_fni_1 = x4[1], b_fni_2 = x4[2], b_fni_3 = x4[3], b_fni_4 = x4[4], b_fni_5 = x4[5], b_fni_6 = x4[6],
                    b_fni_7 = x4[7], b_fni_8 = x4[8], b_fni_9 = x4[9], b_fni_10 = x4[10], b_fni_11 = x4[11],
+                   b_fsi_1 = x6[1], b_fsi_2 = x6[2], b_fsi_3 = x6[3], b_fsi_4 = x6[4], b_fsi_5 = x6[5], b_fsi_6 = x6[6],
+                   b_fsi_7 = x6[7], b_fsi_8 = x6[8], b_fsi_9 = x6[9], b_fsi_10 = x6[10], b_fsi_11 = x6[11],
                    b_fi_1 = x5[1], b_fi_2 = x5[2], b_fi_3 = x5[3], b_fi_4 = x5[4], b_fi_5 = x5[5], b_fi_6 = x5[6],
                    b_fi_7 = x5[7], b_fi_8 = x5[8], b_fi_9 = x5[9], b_fi_10 = x5[10], b_fi_11 = x5[11])
   for (communicationRate in c(.05, .35, .65, .95)) {
