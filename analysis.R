@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-08-04 FranÈesko
+## Edited:   2023-08-07 FranÈesko
 
 ## NOTES
 ##
@@ -1338,7 +1338,7 @@ stargazer(yb6, ya6, yc6, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 25
+completedSeeds = 50
 
 # Loading results of the first seed
 load("results7_seeds_1.RData")
@@ -1558,7 +1558,7 @@ stargazer(yb7, ya7, yc7, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 8
+completedSeeds = 5
 
 # Loading results of the first seed
 load("results8_seeds_1.RData")
@@ -1585,28 +1585,47 @@ tb8 = tb8 %>%
 # Analysis ----------------------------------------------------------------
 
 # Computing mean values of opinion, information and attention
-df = tb8 %>% select(1, 4:7, SD:ESBG, starts_with(paste0("b_f", c("o", "a", "i") , "_" ))) %>%
-  pivot_longer(cols = 9:41, names_prefix = "b_f", names_sep = "_",
+df = tb8 %>% select(1:2, 4:7, SD:ESBG, starts_with(paste0("b_f", c("o", "a", "pi", "ni", "si", "i") , "_" ))) %>%
+  pivot_longer(cols = 10:75, names_prefix = "b_f", names_sep = "_",
                names_to = c("Measure", "weight"), names_transform = list(weight = as.integer)) %>%
-  mutate(weight = if_else(Measure == "a", -.1 + weight * 0.1,  -1.2 + weight * 0.2) %>% round(1),
-         value = value * weight * 0.001,
-         Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "o" ~ "Opinion")) %>%
-  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, SD, manhattan, ESBG, Measure) %>%
+  mutate(weight = case_when(
+           Measure == "o" ~ -1.2 + weight * 0.2,
+           Measure == "a" ~ -0.1 + weight * 0.1,
+           Measure == "pi" ~ -0.1 + weight * 0.1,
+           Measure == "ni" ~ -0.1 + weight * 0.1,
+           Measure == "si" ~ -0.2 + weight * 0.2,
+           Measure == "i" ~ -1.2 + weight * 0.2),
+         value = value * round(weight, 2) * 0.001,
+         Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "pi" ~ "Positive",
+                                       "ni" ~ "Negative", "si" ~ "Sum","o" ~ "Opinion")) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, SD, manhattan, ESBG, Measure, opDistribution) %>%
   summarise(value = sum(value)) %>% ungroup() %>%
-  pivot_wider(id_cols = 1:8, names_from = "Measure") %>%
-  arrange(seed, meanWeight, foldingPoint, communicationRate, forgeting)#%>%
+  pivot_wider(id_cols = 1:9, names_from = "Measure") %>%
+  # mutate(diff = Sum - Positive - Negative) %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, opDistribution)#%>%
   # filter(communicationRate == 0.65, forgeting == 0.45)
 
 # Graph 3D
-plot3d(x = df$Information, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(4))
-plot3d(x = df$SD, y = df$manhattan, z = df$ESBG, type = "s", size = .5, col = rainbow(4))
-plot3d(x = df$manhattan, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
-plot3d(x = df$SD, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
-plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(16))
+plot3d(x = df$Information, y = df$Attention, z = df$ESBG, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$Sum, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$SD, y = df$manhattan, z = df$ESBG, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$manhattan, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$SD, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$Positive, y = df$Negative, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$Positive, y = df$Negative, z = df$ESBG, type = "s", size = .5, col = rainbow(2))
 
+# Just jitter points
+df %>%
+  ggplot(aes(x = Positive, y = Negative, col = opDistribution)) +
+  geom_jitter(alpha = 0.1, size = 1.5) +
+  theme_classic()
 
-
-
+df %>%
+  ggplot(aes(x = Sum, y = Attention, col = opDistribution)) +
+  facet_grid(rows = vars(communicationRate, meanWeight), cols = vars(forgeting)) +
+  geom_jitter(alpha = 0.3, size = 1.5) +
+  theme_classic()
 
 
 

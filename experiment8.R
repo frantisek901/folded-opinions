@@ -59,6 +59,22 @@ createPublic =
   minInOpAv = -0.8   # Average initial opinion of minority
   minInOpSD = 0.15   # SD of initial opinion of minority
 
+  # Changing the same constants in case of "fair" scenario
+  if (opDistribution == "Fair") {
+    majFrac = 0.50  # Fraction of the majority
+    majPosMin = .00  # Minimum of positive information of majority
+    majPosMax = .25  # Maximum of positive information of majority
+    majNegMin = .00  # Minimum of negative information of majority
+    majNegMax = .25  # Maximum of negative information of majority
+    minPosMin = .00  # Minimum of positive information of minority
+    minPosMax = .25  # Maximum of positive information of minority
+    minNegMin = .00  # Minimum of negative information of minority
+    minNegMax = .25  # Maximum of negative information of minority
+    majInOpAv = 0.00   # Average initial opinion of majority
+    majInOpSD = 0.05   # SD of initial opinion of majority
+    minInOpAv = 0.00   # Average initial opinion of minority
+    minInOpSD = 0.05   # SD of initial opinion of minority
+  }
 
   # init of empty matrix
   am = matrix(data = rep(1:N, times = v, N * v),
@@ -337,7 +353,6 @@ experiment =
 N = 1000
 v = 6
 attentionDenom = sqrt(2)
-opDistribution = "Black Pete"
 reinforce = TRUE
 sdFractionWeight = 0
 
@@ -381,6 +396,8 @@ for (seed in 1:50) {
     for (forgeting in c(.2, .45, .7, .95)) {
       for (foldingPoint in c(.5, .35, .65, .95)) {
         for (meanWeight in c(0.5, 1, 1.5)) {
+          for (opDistribution in c("Black Pete", "Fair")) {
+
             results = results %>%
                 add_row(
                   experiment(
@@ -389,7 +406,7 @@ for (seed in 1:50) {
                     forgetingX = forgeting, meanWeightX = meanWeight,
                     sdFractionWeightX = sdFractionWeight,
                     foldingX = foldingPoint,
-                    rounds = 100, Nx = 1000, opDistributionX = "Black Pete"
+                    rounds = 100, Nx = 1000, opDistributionX = opDistribution
                   ))
               print(
                 paste0("Simulation ", SIM," just done, time elapsed: ",
@@ -397,6 +414,7 @@ for (seed in 1:50) {
                        ", forgeting=", forgeting, ", folding=", foldingPoint,
                        ", comm.rate=", communicationRate, ", meanWeight=", meanWeight, ", rounds=100)."))
               SIM = SIM + 1
+          }
         }
       }
     }
