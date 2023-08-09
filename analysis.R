@@ -1558,7 +1558,7 @@ stargazer(yb7, ya7, yc7, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 5
+completedSeeds = 50
 
 # Loading results of the first seed
 load("results8_seeds_1.RData")
@@ -1612,8 +1612,8 @@ plot3d(x = df$SD, y = df$manhattan, z = df$ESBG, type = "s", size = .5, col = ra
 plot3d(x = df$manhattan, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
 plot3d(x = df$SD, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
 plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
-plot3d(x = df$Positive, y = df$Negative, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
 plot3d(x = df$Positive, y = df$Negative, z = df$ESBG, type = "s", size = .5, col = rainbow(2))
+plot3d(x = df$Positive, y = df$Negative, z = df$Opinion, type = "s", size = .5, col = rainbow(2))
 
 # Just jitter points
 df %>%
@@ -1622,8 +1622,14 @@ df %>%
   theme_classic()
 
 df %>%
+  ggplot(aes(x = Positive, y = Negative, col = opDistribution)) +
+  facet_grid(rows = vars(meanWeight, communicationRate), cols = vars(forgeting)) +
+  geom_jitter(alpha = 0.3, size = 1.5) +
+  theme_classic()
+
+df %>%
   ggplot(aes(x = Sum, y = Attention, col = opDistribution)) +
-  facet_grid(rows = vars(communicationRate, meanWeight), cols = vars(forgeting)) +
+  facet_grid(rows = vars(meanWeight, communicationRate), cols = vars(forgeting)) +
   geom_jitter(alpha = 0.3, size = 1.5) +
   theme_classic()
 
