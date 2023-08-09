@@ -1634,6 +1634,222 @@ df %>%
   theme_classic()
 
 
+# Computing agents with opinion 0.5+
+dp = tb8 %>% select(1:2, 4:7, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 10:20, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight >= 9, #value > 0
+         #, opDistribution == "Black Pete"
+         ) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, opDistribution, SD, manhattan, ESBG) %>%
+  summarise(extreme_positive_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, opDistribution)
+
+# Computing agents with opinion less than -0.5
+dn = tb8 %>% select(1:2, 4:7, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 10:20, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight <= 3, #value > 0
+         #, opDistribution == "Black Pete"
+  ) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, opDistribution, SD, manhattan, ESBG) %>%
+  summarise(extreme_negative_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, opDistribution)
+
+# Joining both extremes:
+do = dn %>% right_join(dp)
+
+# Graphs
+do %>%
+  select(Distribution = 6, Negative = 10, Positive = 11) %>%
+  filter(Negative > 0 | Positive > 0) %>%
+  pivot_longer(cols = 2:3, names_to = "Polarity", values_to = "Count_extremes") %>%
+  ggplot() +
+  aes(x = Count_extremes, fill = Distribution) +
+  facet_grid(rows = vars(Distribution), cols = vars(Polarity), scales = "free_y") +
+  geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:6) * 200) +
+  labs(title = "Comparison of extreme opinions distribution according scenario",
+       subtitle = "Scenrios apparently differ", y = "Count of simulations",
+       x = "How many extreme agents we spotted in the simulation?") +
+  theme_light()
+ggsave("distributions.png", width = 7, height = 6)
+
+
+do %>%
+  select(Distribution = 6, Negative = 10, Positive = 11) %>%
+  ggplot() +
+  aes(x = Positive, y = Negative, col = Distribution) +
+  geom_point(alpha = 0.1) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:5) * 200) +
+  theme_light()
+
+
+
+
+
+# Experiment #9 -----------------------------------------------------------
+
+# Loading data ------------------------------------------------------------
+
+# Useful constant -- how many seeds are completely simulated:
+completedSeeds = 50
+
+# Loading results of the first seed
+load("results9_seeds_1.RData")
+
+# Preparing base of 'tb4' from 'results'
+tb9 = results %>% drop_na()
+
+# Adding data from the third experiment:
+for (f in 2:completedSeeds) {
+  load(paste0("results9_seeds_", f, ".RData"))
+  results =  results %>% drop_na()
+  tb9 = tb9 %>%
+    add_row(results)
+}
+
+# Normalization of ESBG and factorisation of other variables:
+tb9 = tb9 %>%
+  mutate(
+    ESBG = ESBG / 2,
+    across(reinforce:majInOpSD, ~ factor(.x)))
+
+
+
+# Analysis ----------------------------------------------------------------
+
+# Computing mean values of opinion, information and attention
+df = tb9 %>% select(1:2, 4:7, 9:10, SD:ESBG,
+                    starts_with(paste0("b_f", c("o", "a", "pi", "ni", "si", "i") , "_" ))) %>%
+  pivot_longer(cols = 12:77, names_prefix = "b_f", names_sep = "_",
+               names_to = c("Measure", "weight"), names_transform = list(weight = as.integer)) %>%
+  mutate(weight = case_when(
+    Measure == "o" ~ -1.2 + weight * 0.2,
+    Measure == "a" ~ -0.1 + weight * 0.1,
+    Measure == "pi" ~ -0.1 + weight * 0.1,
+    Measure == "ni" ~ -0.1 + weight * 0.1,
+    Measure == "si" ~ -0.2 + weight * 0.2,
+    Measure == "i" ~ -1.2 + weight * 0.2),
+    value = value * round(weight, 2) * 0.001,
+    Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "pi" ~ "Positive",
+                         "ni" ~ "Negative", "si" ~ "Sum","o" ~ "Opinion")) %>%
+  group_by(seed, opDistribution, meanWeight, foldingPoint, communicationRate,
+           forgeting, majInOpAv, majInOpSD,
+           SD, manhattan, ESBG, Measure) %>%
+  summarise(value = sum(value)) %>% ungroup() %>%
+  pivot_wider(id_cols = 1:11, names_from = "Measure") %>%
+  # mutate(diff = Sum - Positive - Negative) %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, majInOpAv, majInOpSD, majInOpAv)#%>%
+# filter(communicationRate == 0.65, forgeting == 0.45)
+
+# Graph 3D
+plot3d(x = df$Information, y = df$Attention, z = df$ESBG, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$Sum, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$SD, y = df$manhattan, z = df$ESBG, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$manhattan, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$SD, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$Positive, y = df$Negative, z = df$ESBG, type = "s", size = .5, col = rainbow(3))
+plot3d(x = df$Positive, y = df$Negative, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
+
+# Just jitter points
+df %>%
+  ggplot(aes(x = Positive, y = Negative, col = opDistribution)) +
+  geom_jitter(alpha = 0.1, size = 1.5) +
+  theme_classic()
+
+df %>%
+  ggplot(aes(x = Positive, y = Negative, col = opDistribution)) +
+  facet_grid(rows = vars(meanWeight, communicationRate), cols = vars(forgeting)) +
+  geom_jitter(alpha = 0.3, size = 1.5) +
+  theme_classic()
+
+df %>%
+  ggplot(aes(x = Sum, y = Attention, col = opDistribution)) +
+  facet_grid(rows = vars(meanWeight, communicationRate), cols = vars(forgeting)) +
+  geom_jitter(alpha = 0.3, size = 1.5) +
+  theme_classic()
+
+
+
+
+# Computing agents with opinion 0.5+
+dp = tb9 %>% select(1:2, 4:7, 9:10, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 12:22, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight >= 9, #value > 0
+         #, opDistribution == "Black Pete"
+  ) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, opDistribution,
+           majInOpAv, majInOpSD, SD, manhattan, ESBG) %>%
+  summarise(extreme_positive_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, majInOpAv, majInOpSD, opDistribution)
+
+# Computing agents with opinion less than -0.5
+dn = tb9 %>% select(1:2, 4:7, 9:10, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 12:22, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight <= 3, #value > 0
+         #, opDistribution == "Black Pete"
+  ) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting,
+           majInOpAv, majInOpSD, opDistribution, SD, manhattan, ESBG) %>%
+  summarise(extreme_negative_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, meanWeight, opDistribution, majInOpAv, majInOpSD)
+
+# Joining both extremes:
+do = dn %>% right_join(dp)
+
+# Graphs
+do %>%
+  select(OpinionSD = 7, Negative = 12, Positive = 13) %>%
+  filter(Negative > 0 | Positive > 0) %>%
+  pivot_longer(cols = 2:3, names_to = "Polarity", values_to = "Count_extremes") %>%
+  ggplot() +
+  aes(x = Count_extremes, fill = OpinionSD) +
+  facet_grid(rows = vars(OpinionSD), cols = vars(Polarity), scales = "free_y") +
+  geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:6) * 200) +
+  labs(title = "Comparison of extreme opinions distribution according 'SD initOp'",
+       subtitle = "Scenrios apparently differ", y = "Count of simulations",
+       x = "How many extreme agents we spotted in the simulation?") +
+  theme_light()
+
+do %>%
+  select(initOpinion = 6, Negative = 12, Positive = 13) %>%
+  filter(Negative > 0 | Positive > 0) %>%
+  pivot_longer(cols = 2:3, names_to = "Polarity", values_to = "Count_extremes") %>%
+  ggplot() +
+  aes(x = Count_extremes, fill = initOpinion) +
+  facet_grid(rows = vars(initOpinion), cols = vars(Polarity), scales = "free_y") +
+  geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:6) * 200) +
+  labs(title = "Comparison of extreme opinions distribution according 'average initOp'",
+       subtitle = "Scenrios apparently differ", y = "Count of simulations",
+       x = "How many extreme agents we spotted in the simulation?") +
+  theme_light()
+
+# ggsave("distributions_exp9.png", width = 7, height = 6)
+do %>%
+  select(initOpinion = 6, OpinionSD = 7, Negative = 12, Positive = 13) %>%
+  ggplot() +
+  aes(x = Positive, y = Negative, col = initOpinion) +
+  facet_grid(rows = vars(initOpinion), cols = vars(OpinionSD), labeller = "label_both") +
+  geom_point(alpha = 0.1) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:5) * 200) +
+  theme_light()
+
+
+
+
+
+
 
 
 
