@@ -2,7 +2,7 @@
 
 ## Encoding: windows-1250
 ## Created:  2023-07-05 FranÈesko
-## Edited:   2023-08-07 FranÈesko
+## Edited:   2023-08-10 FranÈesko
 
 ## NOTES
 ##
@@ -1695,7 +1695,7 @@ do %>%
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 50
+completedSeeds = 3
 
 # Loading results of the first seed
 load("results9_seeds_1.RData")
@@ -1774,8 +1774,6 @@ df %>%
   theme_classic()
 
 
-
-
 # Computing agents with opinion 0.5+
 dp = tb9 %>% select(1:2, 4:7, 9:10, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
   pivot_longer(cols = 12:22, names_prefix = "b_fo_",
@@ -1805,12 +1803,12 @@ do = dn %>% right_join(dp)
 
 # Graphs
 do %>%
-  select(OpinionSD = 7, Negative = 12, Positive = 13) %>%
+  select(initOpinion = 6, OpinionSD = 7, Negative = 12, Positive = 13) %>%
   filter(Negative > 0 | Positive > 0) %>%
-  pivot_longer(cols = 2:3, names_to = "Polarity", values_to = "Count_extremes") %>%
+  pivot_longer(cols = 4:3, names_to = "Polarity", values_to = "Count_extremes") %>%
   ggplot() +
-  aes(x = Count_extremes, fill = OpinionSD) +
-  facet_grid(rows = vars(OpinionSD), cols = vars(Polarity), scales = "free_y") +
+  aes(x = Count_extremes, fill = initOpinion) +
+  facet_grid(rows = vars(OpinionSD), cols = vars(initOpinion, Polarity), scales = "free_y") +
   geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
   scale_x_continuous(breaks = (0:5) * 200) +
   scale_y_continuous(breaks = (0:6) * 200) +
@@ -1839,14 +1837,69 @@ do %>%
   select(initOpinion = 6, OpinionSD = 7, Negative = 12, Positive = 13) %>%
   ggplot() +
   aes(x = Positive, y = Negative, col = initOpinion) +
+  geom_abline(slope = 1, col = "skyblue") +
   facet_grid(rows = vars(initOpinion), cols = vars(OpinionSD), labeller = "label_both") +
-  geom_point(alpha = 0.1) +
+  geom_point(alpha = 0.3) +
   scale_x_continuous(breaks = (0:5) * 200) +
   scale_y_continuous(breaks = (0:5) * 200) +
   theme_light()
 
 
 
+# regression --------------------------------------------------------------
+
+ya9 = lm(SD ~ foldingPoint * forgeting * communicationRate,
+         data = tb9)
+yb9 = lm(manhattan ~ foldingPoint * forgeting * communicationRate,
+         data = tb9)
+yc9 = lm(ESBG ~ foldingPoint * forgeting * communicationRate,
+         data = tb9)
+za9 = lm(SD ~ foldingPoint * forgeting * communicationRate * majInOpAv * majInOpSD * meanWeight,
+         data = tb9)
+zb9 = lm(manhattan ~ foldingPoint * forgeting * communicationRate * majInOpAv * majInOpSD * meanWeight,
+         data = tb9)
+zc9 = lm(ESBG ~ foldingPoint * forgeting * communicationRate * majInOpAv * majInOpSD * meanWeight,
+         data = tb9)
+
+## Final tables
+stargazer(ya9, za9, yb9, zb9, yc9, zc9,
+          omit.stat = c("f", "ser"), type = "text", omit = 11:16005,
+          add.lines = "Coefficients for interactions were supressed!")
+
+tx9 = tibble(tb9, pra = predict(ya9), prb = predict(yb9), prc = predict(yc9)) %>%
+  mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
+         foldingPoint = as.character(foldingPoint) %>% as.numeric(),
+         forgeting = as.character(forgeting) %>% as.numeric(),
+         diff_a = SD - pra,
+         diff_b = manhattan - prb,
+         diff_c = ESBG - prc)
+
+
+# Information measures ----------------------------------------------------
+
+# Discretization of dataset
+td9 = tx9 %>%
+  select(foldingPoint, forgeting, communicationRate, SD, manhattan, ESBG,
+         pra, prb, prc, diff_a, diff_b, diff_c) %>%
+  infotheo::discretize(disc = "equalwidth") %>%
+  mutate(combinationCrFFp = communicationRate * 10000 + forgeting * 100 + foldingPoint )
+
+# Normalized mutual information
+exp(mutinformation(td9[, 13], td9[, 5])) %>% log(base = 100) %>% round(3) %>% paste0("Manhattan: ", .)
+exp(mutinformation(td9[, 13], td9[, 4])) %>% log(base = 100) %>% round(3) %>% paste0("SD: ", .)
+exp(mutinformation(td9[, 13], td9[, 6])) %>% log(base = 100) %>% round(3) %>% paste0("ESBG: ", .)
+
+# Fraction of variable-self mutual information
+for (v in c(5, 4, 6)) {
+  val = (100 * mutinformation(td9[, 13], td9[, v]) / mutinformation(td9[, v], td9[, v])) %>% round(2)
+  paste0("Combination CrFFp explains: ", val,
+         "% of posible information of variable '", names(td9)[v], "'.") %>% print()
+}
+
+# R^2 of regression models
+stargazer(yb9, ya9, yc9, type = "text", omit = 1:805,
+          add.lines = "All coefficients were supressed!")
+# Note: Ah yeah, still: normalized mutual info < fraction of mutual info < R^2.
 
 
 
