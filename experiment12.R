@@ -1,9 +1,10 @@
-#### Main script for project with Guga on folded opinion, EXP9
-#### In this version we play with 'Black Pete' scenario -- initial opinion of majority.
+#### Main script for project with Guga on folded opinion, EXP12
+#### In this version we play with 'Black Pete' scenario:
+####   Still same experiment just trying get more smoothness.
 
 ## Encoding: windows-1250
 ## Created:  2023-06-29 Fran»esko
-## Edited:   2023-08-09 Fran»esko
+## Edited:   2023-08-15 Fran»esko
 
 ## NOTES:
 ## 1) What vars we do need for agents?
@@ -34,10 +35,11 @@ library(cusp)
 createPublic =
   function(opDistribution = "Black Pete", N = 1000,
            foldingPoint = 0.05, meanWeight = 1, sdFractionWeight = sdFractionWeightX, minWeight = 0.05,
+           acceptanceAv = acceptanceAvX, acceptanceSD = acceptanceSDX,
            majInOpAv = majInOpAvX, majInOpSD = majInOpSDX, attentionDenom = sqrt(2)) {
   # Needed constants
   N = N  # number of agents
-  v = 6  # number of agents' variables/columns
+  v = 7  # number of agents' variables/columns
   foldingPoint = foldingPoint  # Average folding point
   # folding_sd = folding_sd  # SD of average folding point
   # forgeting = forgeting  # Rate of information kept in info silos
@@ -55,8 +57,8 @@ createPublic =
   minPosMax = .15  # Maximum of positive information of minority
   minNegMin = .80  # Minimum of negative information of minority
   minNegMax = 1.0  # Maximum of negative information of minority
-  # majInOpAv = 0.02   # Average initial opinion of majority
-  # majInOpSD = 0.01   # SD of initial opinion of majority
+  # majInOpAv = 0.15   # Average initial opinion of majority
+  # majInOpSD = 0.05   # SD of initial opinion of majority
   minInOpAv = -0.8   # Average initial opinion of minority
   minInOpSD = 0.15   # SD of initial opinion of minority
 
@@ -80,10 +82,17 @@ createPublic =
   # init of empty matrix
   am = matrix(data = rep(1:N, times = v, N * v),
               ncol = v, byrow = F)  # We initialize whole matrix by IDs in every column.
-  colnames(am) = c("ID", "infoPos", "infoNeg", "attention", "opinion", "ownOpWeight")
+  colnames(am) = c("ID", "acceptance", "infoPos", "infoNeg", "attention", "opinion", "ownOpWeight")
 
-  # Creating values in vars 2:5
+  # Creating values in vars 2:7
   for (i in 1:N) {
+    # Acceptance
+    x = rnorm(n = 1, mean = acceptanceAv, sd = acceptanceSD)
+    while (x <= 0) {
+      x = rnorm(n = 1, mean = acceptanceAv, sd = acceptanceSD)
+    }
+    am[i, "acceptance"] = x
+
     # Information
     am[i, "infoPos"] = if_else(
       i < N * majFrac,
@@ -203,6 +212,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
       ## if() function. So double-czech that 'buyingOpinion = T':
          ### Block for accomodating InfoBias according others opinion:
         ## Firstly, we do agent'i':
+        if (abs(a1["opinion"] - a2["opinion"]) <= a1["acceptance"]) {
           if (a2["opinion"] > 0) {
             agm[i, "infoPos"] = (agm[i, "infoPos"] + a2["opinion"])
             if (agm[i, "infoPos"] > 1) agm[i, "infoPos"] = 1
@@ -210,6 +220,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
             agm[i, "infoNeg"] = (agm[i, "infoNeg"] - a2["opinion"])
             if (agm[i, "infoNeg"] > 1) agm[i, "infoNeg"] = 1
           }
+        }
         # According to Han van der Maas we have also do reinforcement of
         # 'i' opinion, so we have to add its opinion to respective info silo:
         if (reinforce) {
@@ -224,6 +235,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
           }
         }
         ##  Secondly, we do agent'p':
+        if (abs(a2["opinion"] - a1["opinion"]) <= a2["acceptance"]) {
           if (a1["opinion"] > 0) {
             agm[p, "infoPos"] = (agm[p, "infoPos"] + a1["opinion"])
             if (agm[p, "infoPos"] > 1) agm[p, "infoPos"] = 1
@@ -231,6 +243,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
             agm[p, "infoNeg"] = (agm[p, "infoNeg"] - a1["opinion"])
             if (agm[p, "infoNeg"] > 1) agm[p, "infoNeg"] = 1
           }
+        }
         # According to Han van der Maas we have also do same reinforcement of
         # 'p' opinion, so we have to add its opinion to respective info silo:
         if (reinforce) {
@@ -244,7 +257,7 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
             if (agm[p, "infoNeg"] > 1) agm[p, "infoNeg"] = 1  # Cut-off, of course!
           }
         }
-    }
+      }
     ## Now for each agent update:
     #          attention and
     agm[, "attention"] = (agm[, "infoPos"] + agm[, "infoNeg"]) / attentionDenom
@@ -268,16 +281,25 @@ createMatrix = function(NN = 1000, neis = 6.1, nsd = 1.2) {
 # Experiment function -----------------------------------------------------
 
 experiment =
-  function(opDistributionX = "Black Pete", rounds = 100, Nx = 1000, seedX = 1,
-           reinforceX = reinforce, forgetingX = forgeting, meanWeightX = meanWeight,
-           foldingX = foldingPoint, majInOpAvX = majInOpAv, majInOpSDX = majInOpSD,
-           communicationRateX = communicationRate, sdFractionWeightX = sdFractionWeight) {
+  function(opDistributionX = "Black Pete", rounds = 100, Nx = 1000, SIMx = SIM,
+           xSeed = seed, xStemSeed = stemSeed,
+           reinforceX = reinforce, majInOpAvX = majInOpAv, majInOpSDX = majInOpSD,
+           acceptanceSDX = acceptanceSD, sdFractionWeightX = sdFractionWeight) {
   # Setting seed:
+  seedX = xSeed + xStemSeed * 1000
   set.seed(seedX)
+
+  # Random selection of five key parameters:
+  meanWeightX = runif(1, min = 0.5, max = 1.5) %>% round(2)
+  acceptanceAvX = runif(1, min = 0.05, max = 1.35) %>% round(2)
+  communicationRateX = runif(1, min = .05, max = .95) %>% round(2)
+  forgetingX = runif(1, min = .05, max = .95) %>% round(2)
+  foldingX = runif(1, min = 0, max = .5) %>% round(2)
 
   # Initialization of the 'world' and network:
   agm = createPublic(N = Nx, opDistribution = opDistributionX, meanWeight = meanWeightX,
                      sdFractionWeight = sdFractionWeightX,
+                     acceptanceAv = acceptanceAvX, acceptanceSD = acceptanceSDX,
                      majInOpAv = majInOpAvX, majInOpSD = majInOpSDX, foldingPoint = foldingX)
   cmm = createMatrix(NN = Nx, neis = 6.1, nsd = 1.2)
   # print("Initialized!")
@@ -313,6 +335,13 @@ experiment =
   x5 = (hist((agm[, "infoPos"] - agm[, "infoNeg"]), breaks = seq(from = -1.1, to = 1.1, by = 0.2), plot = F))$count
   # print(paste0("Results: ESBG=", round(ESBG / 2, 2), "; SD=", round(SD, 2), "; Manhattan=", round(manhattan, 2),
   #              "; Init. Op.: ", paste(y1, collapse = ", "), "; Fin. Op.: ", paste(x1, collapse = ", ")))
+  # hist(agm[, "opinion"], breaks = seq(from = -1.1, to = 1.1, by = 0.2))
+
+  print(paste0("Simulation ", SIMx," done, time: ",
+           round(Sys.time() - startTime, 2), ". (stemSeed=", xStemSeed,
+           ", forgeting=", forgetingX, ", folding=", foldingX,
+           ", comm.rate=", communicationRateX, ", meanWeight=", meanWeightX,
+           ", acceptanceAv=", acceptanceAvX, ")."))
 
 
   # Returning the tibble with inputs and results:
@@ -320,6 +349,7 @@ experiment =
                 communicationRate = communicationRateX, forgeting = forgetingX,
                 foldingPoint = foldingX, meanWeight = meanWeightX, sdFractionWeight = sdFractionWeightX,
                 majInOpAv = majInOpAvX, majInOpSD = majInOpSDX,
+                acceptanceAv = acceptanceAvX, acceptanceSD = acceptanceSDX,
                 b_io_1 = y1[1], b_io_2 = y1[2], b_io_3 = y1[3], b_io_4 = y1[4], b_io_5 = y1[5], b_io_6 = y1[6],
                 b_io_7 = y1[7], b_io_8 = y1[8], b_io_9 = y1[9], b_io_10 = y1[10], b_io_11 = y1[11],
                 b_ia_1 = y2[1], b_ia_2 = y2[2], b_ia_3 = y2[3], b_ia_4 = y2[4], b_ia_5 = y2[5], b_ia_6 = y2[6],
@@ -353,23 +383,26 @@ experiment =
 
 # Constants for sure:
 N = 1000
-v = 6
+v = 7
 attentionDenom = sqrt(2)
 reinforce = TRUE
 sdFractionWeight = 0
+majInOpAv = 0.15
+majInOpSD = 0.05
 opDistribution = "Black Pete"
+acceptanceSD = 0
 
 # Set of FOR cycles
 startTime = Sys.time()
-SIM = 1
+SIM = 0
 y1 = rep(-1, 11); y2 = y1; y3 = y1; y4 = y1; y5 = y1; y6 = y1
 x1 = y1; x2 = y1; x3 = y1; x4 = y1; x5 = y1; x6 = y1
-for (seed in c(1:50)) {
+for (stemSeed in c(1:400)) {
   # Creating empty tibble for storing results:
   results = tibble(seed = NA_integer_, opDistribution = NA_character_, reinforce = NA,
                    communicationRate = NA_real_, forgeting = NA_real_,
                    foldingPoint = NA_real_, meanWeight = NA_real_, sdFractionWeight = 0,
-                   majInOpAv = NA_real_, majInOpSD = NA_real_,
+                   majInOpAv = NA_real_, majInOpSD = NA_real_, acceptanceAv = -1, acceptanceSD = -1,
                    b_io_1 = y1[1], b_io_2 = y1[2], b_io_3 = y1[3], b_io_4 = y1[4], b_io_5 = y1[5], b_io_6 = y1[6],
                    b_io_7 = y1[7], b_io_8 = y1[8], b_io_9 = y1[9], b_io_10 = y1[10], b_io_11 = y1[11],
                    b_ia_1 = y2[1], b_ia_2 = y2[2], b_ia_3 = y2[3], b_ia_4 = y2[4], b_ia_5 = y2[5], b_ia_6 = y2[6],
@@ -395,36 +428,23 @@ for (seed in c(1:50)) {
                    b_fsi_7 = x6[7], b_fsi_8 = x6[8], b_fsi_9 = x6[9], b_fsi_10 = x6[10], b_fsi_11 = x6[11],
                    b_fi_1 = x5[1], b_fi_2 = x5[2], b_fi_3 = x5[3], b_fi_4 = x5[4], b_fi_5 = x5[5], b_fi_6 = x5[6],
                    b_fi_7 = x5[7], b_fi_8 = x5[8], b_fi_9 = x5[9], b_fi_10 = x5[10], b_fi_11 = x5[11])
-  for (communicationRate in c(.05, .35, .65, .95)) {
-    for (forgeting in c(.2, .45, .7, .95)) {
-      for (foldingPoint in c(.5, .35, .65, .95)) {
-        for (meanWeight in c(0.5, 1, 1.5)) {
-          for (majInOpAv in c(0.05, 0.1, 0.25)) {
-            for (majInOpSD in c(0.05, 0.1, 0.2)) {
+  for (seed in 1:1000) {
+            SIM = SIM + 1
             results = results %>%
                 add_row(
                   experiment(
-                    seedX = seed, reinforceX = reinforce,
-                    communicationRateX = communicationRate,
-                    forgetingX = forgeting, meanWeightX = meanWeight,
-                    sdFractionWeightX = sdFractionWeight, foldingX = foldingPoint,
-                    rounds = 100, Nx = 1000, opDistributionX = opDistribution
-                  ))
-              print(
-                paste0("Simulation ", SIM," just done, time elapsed: ",
-                       round(Sys.time() - startTime, 2), ". (seed=", seed,
-                       ", forgeting=", forgeting, ", folding=", foldingPoint,
-                       ", comm.rate=", communicationRate, ", meanWeight=", meanWeight,
-                       ", majInOpAv=", majInOpAv, ", majInOpSD=", majInOpSD,")."))
-              SIM = SIM + 1
-            }
-          }
-        }
-      }
-    }
+                    xSeed = seed, xStemSeed = stemSeed,
+                    reinforceX = reinforce,
+                    sdFractionWeightX = sdFractionWeight,
+                    majInOpAvX = majInOpAv, majInOpSDX = majInOpSD,
+                    acceptanceSDX = acceptanceSD,
+                    rounds = 100, Nx = 1000, opDistributionX = opDistribution,
+                    SIMx = SIM
+                    )
+                  )
   }
 # Saving ------------------------------------------------------------------
-  save(results, file = paste0("results9_seeds_", seed, ".RData"))
+  save(results, file = paste0("results12_seeds_", stemSeed, ".RData"))
 }
 
 
