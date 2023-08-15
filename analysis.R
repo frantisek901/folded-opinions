@@ -2525,12 +2525,48 @@ for (f in 2:completedSeeds) {
 # Normalization of ESBG and factorisation of other variables:
 tb12 = tb12 %>%
   mutate(
-    ESBG = ESBG / 2,
-    across(reinforce:acceptanceSD, ~ factor(.x)))
+    ESBG = ESBG / 2)
+
+# Analysis of smooth data -------------------------------------------------
+# Plan: We summarise data according pair of independent parameters of our interest,
+#       we compute SD and average for each combination of values of these two params.
+#       We have 5 parameters, so we get 10 pairs.
+#       Firstly we prepare joint dataset 'jd' and
+#       from this we will be doing pairwise summarisation.
+
+# Computing mean values of opinion, information and attention
+jd = tb12 %>% select(1, 4:7, 11, SD:ESBG,
+                     starts_with(paste0("b_f", c("o", "a", "pi", "ni", "si", "i") , "_" ))) %>%
+  pivot_longer(cols = 10:75, names_prefix = "b_f", names_sep = "_",
+               names_to = c("Measure", "weight"), names_transform = list(weight = as.integer)) %>%
+  mutate(weight = case_when(
+    Measure == "o" ~ -1.2 + weight * 0.2,
+    Measure == "a" ~ -0.1 + weight * 0.1,
+    Measure == "pi" ~ -0.1 + weight * 0.1,
+    Measure == "ni" ~ -0.1 + weight * 0.1,
+    Measure == "si" ~ -0.2 + weight * 0.2,
+    Measure == "i" ~ -1.2 + weight * 0.2),
+    value = value * round(weight, 2) * 0.001,
+    Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "pi" ~ "Positive",
+                         "ni" ~ "Negative", "si" ~ "Sum","o" ~ "Opinion")) %>%
+  group_by(seed, foldingPoint, meanWeight, communicationRate, forgeting, acceptanceAv, SD, manhattan, ESBG, Measure) %>%
+  summarise(value = sum(value)) %>% ungroup() %>%
+  pivot_wider(id_cols = 1:9, names_from = "Measure")
+# NICE! 'jd' is computed!
 
 
+# Communicattion VS Forgetting --------------------------------------------
 
-
+df = jd %>% group_by(communicationRate, forgeting) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}"))
+# Let's plot firstly SD, since it makes no sense to plot averages with high SD
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Opinion_sd, type = "s", size = .5, col = rainbow(10))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$ESBG_sd, type = "s", size = .5, col = rainbow(10))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Attention_sd, type = "s", size = .5, col = rainbow(10))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Sum_sd, type = "s", size = .5, col = rainbow(10))
+# OK, so Attention and sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Attention_mean, type = "s", size = .5, col = rainbow(10))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Sum_mean, type = "s", size = .5, col = rainbow(10))
 
 
 
