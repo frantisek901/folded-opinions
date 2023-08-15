@@ -1693,7 +1693,7 @@ do %>%
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 10
+completedSeeds = 37
 
 # Loading results of the first seed
 load("results9_seeds_1.RData")
@@ -1806,10 +1806,10 @@ do %>%
   pivot_longer(cols = 4:3, names_to = "Polarity", values_to = "Count_extremes") %>%
   ggplot() +
   aes(x = Count_extremes, fill = initOpinion) +
-  facet_grid(rows = vars(OpinionSD), cols = vars(initOpinion, Polarity), scales = "free_y") +
+  facet_grid(rows = vars(OpinionSD), cols = vars(initOpinion, Polarity), scales = "free_x") +
   geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
   scale_x_continuous(breaks = (0:5) * 200) +
-  scale_y_continuous(breaks = (0:6) * 200) +
+  scale_y_continuous(breaks = (0:6) * 400) +
   labs(title = "Comparison of extreme opinions distribution according 'SD initOp'",
        subtitle = "Scenrios apparently differ", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
@@ -1824,7 +1824,7 @@ do %>%
   facet_grid(rows = vars(initOpinion), cols = vars(Polarity), scales = "free_y") +
   geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
   scale_x_continuous(breaks = (0:5) * 200) +
-  scale_y_continuous(breaks = (0:6) * 300) +
+  scale_y_continuous(breaks = (0:12) * 600) +
   labs(title = "Comparison of extreme opinions distribution according 'average initOp'",
        subtitle = "Scenrios apparently differ", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
@@ -1849,7 +1849,9 @@ do %>%
   facet_grid(rows = vars(initOpinion), cols = vars(OpinionSD), labeller = "label_both") +
   geom_abline(slope = 1, col = "skyblue") +
   geom_abline(slope = -1, intercept = 1000, col = "grey50") +
-  geom_point(alpha = 0.3, show.legend = F) +
+  geom_abline(slope = (1 / 1.25), intercept = 00, col = "orange") +
+  geom_abline(slope = (1.25), intercept = 00, col = "orange") +
+  geom_point(alpha = 0.1, show.legend = F) +
   scale_x_continuous(breaks = (0:5) * 200) +
   scale_y_continuous(breaks = (0:5) * 200) +
   labs(title = "Distribution of counts of extreme negative and positive opinions") +
@@ -1922,7 +1924,7 @@ stargazer(yb9, ya9, yc9, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 6
+completedSeeds = 219
 
 # Loading results of the first seed
 load("results10_seeds_1.RData")
@@ -1981,22 +1983,24 @@ df = tb10 %>% select(1:2, 4:7, 9:12, SD:ESBG,
 # plot3d(x = df$ESBG, y = df$Attention, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
 # plot3d(x = df$Positive, y = df$Negative, z = df$ESBG, type = "s", size = .5, col = rainbow(3))
 plot3d(x = df$Positive, y = df$Negative, z = df$Opinion, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$communicationRate, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$forgeting, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$communicationRate, x = df$forgeting, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$communicationRate, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$meanWeight, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$forgeting, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$meanWeight, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$communicationRate, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
-plot3d(z = df$Positive, y = df$meanWeight, x = df$forgeting, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$communicationRate, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$forgeting, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$communicationRate, x = df$forgeting, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$communicationRate, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$meanWeight, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$forgeting, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$meanWeight, x = df$foldingPoint, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$communicationRate, x = df$meanWeight, type = "s", size = .5, col = rainbow(3))
+# plot3d(z = df$Positive, y = df$meanWeight, x = df$forgeting, type = "s", size = .5, col = rainbow(3))
 
 # Just jitter points
 df %>%
   ggplot(aes(x = Positive, y = Negative, col = acceptanceAv)) +
-  geom_jitter(alpha = 0.3, size = 1.5) +
+  geom_jitter(alpha = 0.1, size = 1.5) +
   geom_abline(slope = 1, col = "skyblue") +
   geom_abline(slope = -1, intercept = 1, col = "grey50") +
+  geom_abline(slope = (1 / 1.25), intercept = 00, col = "orange") +
+  geom_abline(slope = (1.25), intercept = 00, col = "orange") +
   theme_classic()
 
 # df %>%
@@ -2066,11 +2070,12 @@ do %>%
              scales = "free_y", labeller = "label_both") +
   geom_histogram(alpha = 0.4, show.legend = F, binwidth = 50) +
   scale_x_continuous(breaks = (0:5) * 200) +
-  scale_y_continuous(breaks = (0:6) * 30) +
+  scale_y_continuous(breaks = (0:15) * 400) +
   labs(title = "Comparison of extreme opinions distribution according 'latitude of acceptance avg/SD'",
        subtitle = "Acceptance apparently brings some kind of symmetry", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
   theme_light()
+ggsave("distributions_exp10.png", width = 7, height = 6)
 
 # Checking distribution of final opinion
 df %>%
@@ -2094,12 +2099,52 @@ do %>%
   geom_abline(slope = (1 / 1.25), intercept = 00, col = "orange") +
   geom_abline(slope = (1.25), intercept = 00, col = "orange") +
   geom_abline(slope = -1, intercept = 1000, col = "grey50") +
-  geom_point(alpha = 0.3, show.legend = F) +
+  geom_point(alpha = 0.1, show.legend = F) +
   scale_x_continuous(breaks = (0:5) * 200) +
   scale_y_continuous(breaks = (0:5) * 200) +
   labs(title = "Distribution of counts of extreme negative and positive opinions") +
   theme_light()
 ggsave("distributions_exp10b.png", width = 7, height = 6)
+
+
+
+# Measuring 'Black Pete' --------------------------------------------------
+
+bp = do %>% rename(Negative = 12, Positive = 13) %>%
+  mutate(blackPete = Positive >= 300 & (Positive > (Negative * 1.25)))
+sum(bp$blackPete) / nrow(bp)
+
+# How much is Black Pete Result polarized?
+bp %>%
+  ggplot() +
+  aes(x = ESBG, fill = blackPete) +
+  geom_histogram(alpha = 0.6, binwidth = 0.03) +
+  labs(title = "Distribution of ESBG of simulations\naccording fullfilling 'Black Pete result'",
+       caption = "'Black Pete result': at least 30% of agents are extremely positive (opinion >=0.5) and\nthere are at least of 25% more extremely positive than extremely negative agents.") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+ggsave("blackPete_exp10_ESBG.png", width = 7, height = 6)
+
+# Which parameters predict 'Black Pete Result'?
+model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv, family="binomial", data=bp)
+options(scipen=999)
+summary(model)
+
+# Graph represinting these parameters' influence:
+sbp = bp %>% group_by(foldingPoint, communicationRate, forgeting, acceptanceAv) %>%
+  mutate(N = n()) %>%
+  group_by(foldingPoint, communicationRate, forgeting, acceptanceAv, N) %>%
+  summarise(blackPete = sum(blackPete)) %>% ungroup() %>%
+  mutate(p = round(100 * blackPete / N, 1),
+         foldingPoint = fct_rev(foldingPoint))
+sbp %>%
+  ggplot() +
+  aes(y = p, fill = acceptanceAv, x = forgeting) +
+  facet_grid(rows = vars(foldingPoint), cols = vars(communicationRate), labeller = 'label_both') +
+  geom_col(position = position_dodge()) +
+  labs(y = "probability of 'Black Pete Result'") +
+  theme_classic()
+ggsave("blackPete_exp10_params.png", width = 7, height = 6)
 
 
 
@@ -2129,6 +2174,8 @@ tx10 = tibble(tb10, pra = predict(ya10), prb = predict(yb10), prc = predict(yc10
   mutate(communicationRate = as.character(communicationRate) %>% as.numeric(),
          foldingPoint = as.character(foldingPoint) %>% as.numeric(),
          forgeting = as.character(forgeting) %>% as.numeric(),
+         meanWeight = as.character(meanWeight) %>% as.numeric(),
+         acceptanceAv = as.character(acceptanceAv) %>% as.numeric(),
          diff_a = SD - pra,
          diff_b = manhattan - prb,
          diff_c = ESBG - prc)
@@ -2138,25 +2185,31 @@ tx10 = tibble(tb10, pra = predict(ya10), prb = predict(yb10), prc = predict(yc10
 
 # Discretization of dataset
 td10 = tx10 %>%
-  select(foldingPoint, forgeting, communicationRate, SD, manhattan, ESBG,
-         pra, prb, prc, diff_a, diff_b, diff_c) %>%
+  select(foldingPoint, forgeting, communicationRate, meanWeight, acceptanceAv, SD, manhattan, ESBG) %>%
   infotheo::discretize(disc = "equalwidth") %>%
-  mutate(combinationCrFFp = communicationRate * 10000 + forgeting * 100 + foldingPoint )
+  mutate(combinationCrFFp = factor(communicationRate * 10000 + forgeting * 100 + foldingPoint),
+         combinationAll = factor(100000000 * acceptanceAv + 1000000 * meanWeight + communicationRate * 10000 + forgeting * 100 + foldingPoint))
 
 # Normalized mutual information
-exp(mutinformation(td10[, 13], td10[, 5])) %>% log(base = 18) %>% round(3) %>% paste0("Manhattan: ", .)
-exp(mutinformation(td10[, 13], td10[, 4])) %>% log(base = 18) %>% round(3) %>% paste0("SD: ", .)
-exp(mutinformation(td10[, 13], td10[, 6])) %>% log(base = 18) %>% round(3) %>% paste0("ESBG: ", .)
+exp(mutinformation(td10[, 9], td10[, 7])) %>% log(base = 18) %>% round(3) %>% paste0("Manhattan: ", .)
+exp(mutinformation(td10[, 9], td10[, 6])) %>% log(base = 18) %>% round(3) %>% paste0("SD: ", .)
+exp(mutinformation(td10[, 9], td10[, 8])) %>% log(base = 18) %>% round(3) %>% paste0("ESBG: ", .)
+exp(mutinformation(td10[, 10], td10[, 7])) %>% log(base = 108) %>% round(3) %>% paste0("Manhattan: ", .)
+exp(mutinformation(td10[, 10], td10[, 6])) %>% log(base = 108) %>% round(3) %>% paste0("SD: ", .)
+exp(mutinformation(td10[, 10], td10[, 8])) %>% log(base = 108) %>% round(3) %>% paste0("ESBG: ", .)
 
 # Fraction of variable-self mutual information
-for (v in c(5, 4, 6)) {
-  val = (100 * mutinformation(td10[, 13], td10[, v]) / mutinformation(td10[, v], td10[, v])) %>% round(2)
-  paste0("Combination CrFFp explains: ", val,
+for (v in c(7, 6, 8)) {
+  val = (100 * mutinformation(td10[, 9], td10[, v]) / mutinformation(td10[, v], td10[, v])) %>% round(2)
+  val2 = (100 * mutinformation(td10[, 10], td10[, v]) / mutinformation(td10[, v], td10[, v])) %>% round(2)
+  paste0("Combination CrFFp explains     : ", val,
+         "% of posible information of variable '", names(td10)[v], "'.") %>% print()
+  paste0("Combination LacMwCrFFp explains: ", val2,
          "% of posible information of variable '", names(td10)[v], "'.") %>% print()
 }
 
 # R^2 of regression models
-stargazer(yb10, ya10, yc10, type = "text", omit = 1:805,
+stargazer(yb10, zb9, ya10, za9, yc10, zc9, type = "text", omit = 1:805,
           omit.stat = c("f", "ser"), add.lines = "Coeffs supressed!")
 # Note: Ah yeah, still: normalized mutual info < fraction of mutual info < R^2.
 
