@@ -2237,7 +2237,7 @@ stargazer(yb10, zb9, ya10, za9, yc10, zc9, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 7
+completedSeeds = 8
 
 # Loading results of the first seed
 load("results11_seeds_1.RData")
@@ -2714,7 +2714,7 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 41
+completedSeeds = 43
 
 # Loading results of the first seed
 load("results13_seeds_1.RData")
@@ -3125,53 +3125,61 @@ bp = do %>% rename(Negative = 11, Positive = 12) %>%
 sum(bp$blackPete) / nrow(bp)
 
 # Which parameters predict 'Black Pete Result'?
-bpx = bp %>% mutate(across(2:7, ~ round(.x, 1) %>% factor()))
-model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv+storing+meanWeight, family="binomial", data=bpx)
-options(scipen=999)
-summary(model)
-bp[,2:7] %>% summary()
+bpx = bp %>% mutate(across(2:7, ~ (round(.x / 2, 1) * 2)  %>% factor()))
+# model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv+storing+meanWeight, family="binomial", data=bpx)
+# options(scipen=999)
+# summary(model)
+# bp[,2:7] %>% summary()
 
 # Graph represinting these parameters' influence:
 sbp = bpx %>% group_by(foldingPoint,
                        #communicationRate,
-                       #forgeting,
+                       forgeting,
                        storing,
-                       meanWeight,
+                       # meanWeight,
                        acceptanceAv) %>%
   mutate(N = n()) %>%
   group_by(foldingPoint,
            # communicationRate,
-           # forgeting,
+           forgeting,
            acceptanceAv,
            storing,
-           meanWeight, N) %>%
+           # meanWeight,
+           N) %>%
   summarise(blackPete = sum(blackPete)) %>% ungroup() %>%
   mutate(p = round(100 * blackPete / N, 1),
          across(c(#communicationRate,
-                  storing,
+                  # storing,
+                  acceptanceAv,
                   foldingPoint), ~ fct_rev(.x)))
 sbp %>%
   filter(p > 0) %>%
   ggplot() +
-  aes(y = p, x = acceptanceAv, fill = foldingPoint) +
+  aes(y = p, x = storing, fill = foldingPoint) +
   facet_grid(rows = vars(#communicationRate,
-                         storing
+                         acceptanceAv
                          ),
-             cols = vars(#forgeting,
-                         meanWeight
+             cols = vars(forgeting#,
+                         # meanWeight
                          ),
-             labeller = 'label_value') +
-  geom_col(position = position_dodge(preserve = "single")) +
+             labeller = 'label_both') +
+  geom_col(alpha = 0.7, position = position_dodge(preserve = "single")) +
   labs(y = "probability of 'Black Pete Result'") +
-  scale_fill_viridis_d() +
-  theme_classic()
+  scale_fill_viridis_d(option = "D") +
+  theme_light()
 ggsave("blackPete_exp13_params.png", width = 7, height = 6)
 
 
 
-
-
-
+# Is Black Pete result log-log distributed?
+sbp %>%
+  ggplot() +
+  aes(x = blackPete) +
+  geom_histogram(fill = "skyblue", alpha = 0.8) +
+  # scale_y_log10() +
+  # scale_x_log10() +
+  theme_light()
+# Graph says 'No...'
 
 
 
