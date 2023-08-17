@@ -2714,7 +2714,7 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 24
+completedSeeds = 31
 
 # Loading results of the first seed
 load("results13_seeds_1.RData")
@@ -2733,8 +2733,8 @@ for (f in 2:completedSeeds) {
 # Normalization of ESBG and factorisation of other variables:
 tb13 = tb13 %>%
   mutate(
-    ESBG = ESBG / 2,
-    across(reinforce:acceptanceSD, ~ factor(.x)))
+    ESBG = ESBG / 2)#,
+    # across(reinforce:acceptanceSD, ~ factor(.x)))
 
 
 # Loading records of individual traces ------------------------------------
@@ -2818,8 +2818,354 @@ trx %>%
 ggsave("extremeCases.png", width = 10, height = 6)
 
 
+# Visual analysis in the same style as EXP 12 ------------------------------
+
+#  # Analysis of smooth data -------------------------------------------------
+# Plan: We summarise data according pair of independent parameters of our interest,
+#       we compute SD and average for each combination of values of these two params.
+#       We have 5 parameters, so we get 10 pairs.
+#       Firstly we prepare joint dataset 'jd' and
+#       from this we will be doing pairwise summarisation.
+
+# Computing mean values of opinion, information and attention
+jd = tb13 %>% select(1, 4:8, 12, SD:ESBG,
+                     starts_with(paste0("b_f", c("o", "a", "pi", "ni", "si", "i") , "_" ))) %>%
+  pivot_longer(cols = 11:76, names_prefix = "b_f", names_sep = "_",
+               names_to = c("Measure", "weight"), names_transform = list(weight = as.integer)) %>%
+  mutate(weight = case_when(
+    Measure == "o" ~ -1.2 + weight * 0.2,
+    Measure == "a" ~ -0.1 + weight * 0.1,
+    Measure == "pi" ~ -0.1 + weight * 0.1,
+    Measure == "ni" ~ -0.1 + weight * 0.1,
+    Measure == "si" ~ -0.2 + weight * 0.2,
+    Measure == "i" ~ -1.2 + weight * 0.2),
+    value = value * round(weight, 2) * 0.001,
+    Measure = case_match(Measure, "a" ~ "Attention", "i" ~ "Information", "pi" ~ "Positive",
+                         "ni" ~ "Negative", "si" ~ "Sum","o" ~ "Opinion")) %>%
+  group_by(seed, foldingPoint, meanWeight, communicationRate, forgeting, storing, acceptanceAv, SD, manhattan, ESBG, Measure) %>%
+  summarise(value = sum(value)) %>% ungroup() %>%
+  pivot_wider(id_cols = 1:10, names_from = "Measure") %>%
+  # Now we filter conditions where 'Black Pete Scenario' happen:
+  # filter(foldingPoint < 0.15, forgeting > 0.45#, acceptanceAv < 1.1
+  #        )
+# NICE! 'jd' is computed!
 
 
+# Communicattion VS Forgetting --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(communicationRate, forgeting) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# Let's plot firstly SD, since it makes no sense to plot averages with high SD
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Opinion_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$ESBG_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Attention_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Sum_sd, type = "s", size = .5, col = rainbow(100))
+# OK, so sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$forgeting, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Communicattion VS Folding --------------------------------------------
+
+df = jd %>%
+  # mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(communicationRate, foldingPoint) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# Let's plot firstly SD, since it makes no sense to plot averages with high SD
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Opinion_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$ESBG_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Attention_sd, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Sum_sd, type = "s", size = .5, col = rainbow(100))
+# OK, so sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$foldingPoint, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Communicattion VS Acceptance --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(communicationRate, acceptanceAv) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$acceptanceAv, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$acceptanceAv, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$acceptanceAv, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$acceptanceAv, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Communicattion VS MeanWeight --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(communicationRate, meanWeight) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$meanWeight, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$communicationRate, y = df$meanWeight, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$communicationRate, y = df$meanWeight, z = df$Attention_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$communicationRate, y = df$meanWeight, z = df$Sum_mean, type = "s", size = .5, col = rainbow(110))
+
+
+
+# Forgetting VS Folding --------------------------------------------
+
+df = jd %>%
+  # mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(foldingPoint, forgeting) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$forgeting, y = df$foldingPoint, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(60))
+plot3d(x = df$forgeting, y = df$foldingPoint, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(60))
+plot3d(x = df$forgeting, y = df$foldingPoint, z = df$Attention_mean, type = "s", size = .5, col = rainbow(60))
+plot3d(x = df$forgeting, y = df$foldingPoint, z = df$Sum_mean, type = "s", size = .5, col = rainbow(60))
+
+
+# Forgetting VS Acceptance --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(forgeting, acceptanceAv) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$forgeting, y = df$acceptanceAv, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(150))
+plot3d(x = df$forgeting, y = df$acceptanceAv, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$forgeting, y = df$acceptanceAv, z = df$Attention_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$forgeting, y = df$acceptanceAv, z = df$Sum_mean, type = "s", size = .5, col = rainbow(1785))
+
+
+# Forgetting VS MeanWeight --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(forgeting, meanWeight) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$forgeting, y = df$meanWeight, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$forgeting, y = df$meanWeight, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$forgeting, y = df$meanWeight, z = df$Attention_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$forgeting, y = df$meanWeight, z = df$Sum_mean, type = "s", size = .5, col = rainbow(1785))
+
+
+# Folding VS Acceptance --------------------------------------------
+
+df = jd %>%
+  # mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(foldingPoint, acceptanceAv) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$foldingPoint, y = df$acceptanceAv, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(350))
+plot3d(x = df$foldingPoint, y = df$acceptanceAv, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$foldingPoint, y = df$acceptanceAv, z = df$Attention_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$foldingPoint, y = df$acceptanceAv, z = df$Sum_mean, type = "s", size = .5, col = rainbow(1785))
+
+
+# Folding VS MeanWeight --------------------------------------------
+
+df = jd %>%
+  # mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(foldingPoint, meanWeight) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$foldingPoint, y = df$meanWeight, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(355))
+plot3d(x = df$foldingPoint, y = df$meanWeight, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$foldingPoint, y = df$meanWeight, z = df$Attention_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$foldingPoint, y = df$meanWeight, z = df$Sum_mean, type = "s", size = .5, col = rainbow(1785))
+
+
+# Acceptance VS MeanWeight --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:6, ~round(.x, 1))) %>%
+  group_by(acceptanceAv, meanWeight) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(160))
+plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Attention_mean, type = "s", size = .5, col = rainbow(1785))
+plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size = .5, col = rainbow(1785))
+
+
+
+# Storing VS Communication Rate --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(communicationRate, storing) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$communicationRate, y = df$storing, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$storing, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$storing, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$communicationRate, y = df$storing, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Storing VS Forgetting --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(storing, forgeting) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$storing, y = df$forgeting, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$forgeting, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$forgeting, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$forgeting, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Storing VS Folding --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(storing, foldingPoint) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$storing, y = df$foldingPoint, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$foldingPoint, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$foldingPoint, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$foldingPoint, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Storing VS Acceptance --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(storing, acceptanceAv) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$storing, y = df$acceptanceAv, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$acceptanceAv, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$acceptanceAv, z = df$Attention_mean, type = "s", size = .5, col = rainbow(100))
+plot3d(x = df$storing, y = df$acceptanceAv, z = df$Sum_mean, type = "s", size = .5, col = rainbow(100))
+
+
+# Storing VS MeanWeight --------------------------------------------
+
+df = jd %>%
+  mutate(across(2:7, ~round(.x, 1))) %>%
+  group_by(storing, meanWeight) %>%
+  summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
+  arrange(Opinion_mean)
+# OK, so sum of information makes sense...
+plot3d(x = df$storing, y = df$meanWeight, z = df$Opinion_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$storing, y = df$meanWeight, z = df$ESBG_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$storing, y = df$meanWeight, z = df$Attention_mean, type = "s", size = .5, col = rainbow(110))
+plot3d(x = df$storing, y = df$meanWeight, z = df$Sum_mean, type = "s", size = .5, col = rainbow(110))
+
+
+
+
+# Measuring 'Black Pete' --------------------------------------------------
+
+# Computing agents with opinion 0.5+
+dp = tb13 %>% select(1, 4:8, 12, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 11:21, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight >= 9) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, storing,
+           acceptanceAv, SD, manhattan, ESBG) %>%
+  summarise(extreme_positive_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, storing, meanWeight, acceptanceAv)
+
+# Computing agents with opinion less than -0.5
+dn = tb13 %>% select(1, 4:8, 12, SD:ESBG, starts_with(paste0("b_f", c("o") , "_" ))) %>%
+  pivot_longer(cols = 11:21, names_prefix = "b_fo_",
+               names_to = c("weight"), names_transform = list(weight = as.integer)) %>%
+  filter(weight <= 3) %>%
+  group_by(seed, meanWeight, foldingPoint, communicationRate, forgeting, storing,
+           acceptanceAv, SD, manhattan, ESBG) %>%
+  summarise(extreme_negative_opinion = sum(value)) %>% ungroup() %>%
+  arrange(seed, foldingPoint, communicationRate, forgeting, storing, meanWeight, acceptanceAv)
+
+# Joining both extremes:
+do = dn %>% right_join(dp)
+
+# Graphs
+do %>%
+  select(acceptanceAv, Negative = 11, Positive = 12) %>%
+  mutate(acceptanceAv = round(acceptanceAv, 1) %>% factor()) %>%
+  ggplot() +
+  aes(x = Positive, y = Negative, col = acceptanceAv) +
+  facet_wrap(vars(acceptanceAv), labeller = "label_value") +
+  geom_abline(slope = 1, col = "skyblue") +
+  geom_abline(slope = (1 / 1.25), intercept = 00, col = "orange") +
+  geom_abline(slope = (1.25), intercept = 00, col = "orange") +
+  geom_abline(slope = -1, intercept = 1000, col = "grey50") +
+  geom_point(alpha = 0.3, show.legend = F) +
+  scale_x_continuous(breaks = (0:5) * 200) +
+  scale_y_continuous(breaks = (0:5) * 200) +
+  labs(title = "Distribution of counts of extreme negative and positive opinions") +
+  theme_light()
+ggsave("distributions_exp13b.png", width = 7, height = 6)
+
+
+# Operationalizing 'Black Pete Result':
+bp = do %>% rename(Negative = 11, Positive = 12) %>%
+  mutate(blackPete = Positive >= 300 & (Positive > (Negative * 1.25)))
+sum(bp$blackPete) / nrow(bp)
+
+# Which parameters predict 'Black Pete Result'?
+bpx = bp %>% mutate(across(2:7, ~ round(.x, 1) %>% factor()))
+model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv+storing+meanWeight, family="binomial", data=bpx)
+options(scipen=999)
+summary(model)
+bp[,2:7] %>% summary()
+
+# Graph represinting these parameters' influence:
+sbp = bpx %>% group_by(foldingPoint,
+                       #communicationRate,
+                       #forgeting,
+                       storing,
+                       meanWeight,
+                       acceptanceAv) %>%
+  mutate(N = n()) %>%
+  group_by(foldingPoint,
+           # communicationRate,
+           # forgeting,
+           acceptanceAv,
+           storing,
+           meanWeight, N) %>%
+  summarise(blackPete = sum(blackPete)) %>% ungroup() %>%
+  mutate(p = round(100 * blackPete / N, 1),
+         across(c(#communicationRate,
+                  storing,
+                  foldingPoint), ~ fct_rev(.x)))
+sbp %>%
+  filter(p > 0) %>%
+  ggplot() +
+  aes(y = p, x = acceptanceAv, fill = foldingPoint) +
+  facet_grid(rows = vars(#communicationRate,
+                         storing
+                         ),
+             cols = vars(#forgeting,
+                         meanWeight
+                         ),
+             labeller = 'label_value') +
+  geom_col(position = position_dodge(preserve = "single")) +
+  labs(y = "probability of 'Black Pete Result'") +
+  scale_fill_viridis_d() +
+  theme_classic()
+ggsave("blackPete_exp13_params.png", width = 7, height = 6)
 
 
 
