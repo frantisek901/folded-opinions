@@ -2237,7 +2237,7 @@ stargazer(yb10, zb9, ya10, za9, yc10, zc9, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 4
+completedSeeds = 7
 
 # Loading results of the first seed
 load("results11_seeds_1.RData")
@@ -2506,7 +2506,7 @@ stargazer(yb11, zb11, ya11, za11, yc11, zc11, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 7
+completedSeeds = 14
 
 # Loading results of the first seed
 load("results12_seeds_1.RData")
@@ -2560,7 +2560,7 @@ jd = tb12 %>% select(1, 4:7, 11, SD:ESBG,
 # Communicattion VS Forgetting --------------------------------------------
 
 df = jd %>%
-  # mutate(across(2:6, ~round(.x, 1))) %>%
+  mutate(across(2:6, ~round(.x, 1))) %>%
   group_by(communicationRate, forgeting) %>%
   summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
   arrange(Opinion_mean)
@@ -2714,7 +2714,7 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 31
+completedSeeds = 41
 
 # Loading results of the first seed
 load("results13_seeds_1.RData")
@@ -2846,8 +2846,8 @@ jd = tb13 %>% select(1, 4:8, 12, SD:ESBG,
   summarise(value = sum(value)) %>% ungroup() %>%
   pivot_wider(id_cols = 1:10, names_from = "Measure") %>%
   # Now we filter conditions where 'Black Pete Scenario' happen:
-  # filter(foldingPoint < 0.15, forgeting > 0.45#, acceptanceAv < 1.1
-  #        )
+  filter(foldingPoint < 0.15, forgeting > 0.45#, acceptanceAv < 1.1
+         )
 # NICE! 'jd' is computed!
 
 
@@ -3034,7 +3034,7 @@ plot3d(x = df$storing, y = df$forgeting, z = df$Sum_mean, type = "s", size = .5,
 # Storing VS Folding --------------------------------------------
 
 df = jd %>%
-  mutate(across(2:7, ~round(.x, 1))) %>%
+  # mutate(across(2:7, ~round(.x, 1))) %>%
   group_by(storing, foldingPoint) %>%
   summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
   arrange(Opinion_mean)
