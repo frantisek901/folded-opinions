@@ -2714,7 +2714,7 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 21
+completedSeeds = 22
 
 # Loading results of the first seed
 load("results13_seeds_1.RData")
