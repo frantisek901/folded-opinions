@@ -2714,7 +2714,7 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 7
+completedSeeds = 21
 
 # Loading results of the first seed
 load("results13_seeds_1.RData")
@@ -2761,7 +2761,7 @@ tr = filter(tr, ID > 0)
 ## Drawing one simulation run
 #  Data preparation:
 trx = tr %>% ungroup %>%
-  filter(seed == 751) %>%
+  filter(seed == 1751) %>%
   mutate(sID = 10000 * seed + ID) %>%
   arrange(sID) %>%
   group_by(sID)
@@ -2783,7 +2783,7 @@ ggsave("individualSim.png", width = 10, height = 6)
 
 ## Drawing extreme long hops:
 # Parameters:
-hopTreshold = 1.5
+hopTreshold = 1.75
 backTreshold = 0.05
 
 # We create file which coins agents performing to big hops there and back:
