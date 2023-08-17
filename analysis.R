@@ -2506,7 +2506,7 @@ stargazer(yb11, zb11, ya11, za11, yc11, zc11, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 14
+completedSeeds = 15
 
 # Loading results of the first seed
 load("results12_seeds_1.RData")
