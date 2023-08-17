@@ -2709,7 +2709,113 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 
 
 
+# Experiment #13 -----------------------------------------------------------
 
+# Loading data ------------------------------------------------------------
+
+# Useful constant -- how many seeds are completely simulated:
+completedSeeds = 7
+
+# Loading results of the first seed
+load("results13_seeds_1.RData")
+
+# Preparing base of 'tb4' from 'results'
+tb13 = results %>% drop_na()
+
+# Adding data from the third experiment:
+for (f in 2:completedSeeds) {
+  load(paste0("results13_seeds_", f, ".RData"))
+  results =  results %>% drop_na()
+  tb13 = tb13 %>%
+    add_row(results)
+}
+
+# Normalization of ESBG and factorisation of other variables:
+tb13 = tb13 %>%
+  mutate(
+    ESBG = ESBG / 2,
+    across(reinforce:acceptanceSD, ~ factor(.x)))
+
+
+# Loading records of individual traces ------------------------------------
+
+# Creating "empty" row initializing combining and later erasing:
+tr  = tibble(ID = -1, infoPos = -1, infoNeg = -1, attention = -1, opinion = -1,
+             round = -1, seed = -1, communicationRate = -1, forgeting = -1,
+             foldingPoint = -1, storing = -1, meanWeight = -1, acceptanceAv = -1)
+
+# Loading cycle:
+for (s in 1:completedSeeds) {
+  for (sim in 1:100) {
+    load(paste0("record13_seeds_", s, "_sim_", sim, ".RData"))
+    tr = tr %>% add_row(record)
+  }
+}
+
+# Dropping initializing empty row:
+tr = filter(tr, ID > 0)
+
+
+# Analyzing hopping traces ------------------------------------------------
+
+## Drawing one simulation run
+#  Data preparation:
+trx = tr %>% ungroup %>%
+  filter(seed == 751) %>%
+  mutate(sID = 10000 * seed + ID) %>%
+  arrange(sID) %>%
+  group_by(sID)
+
+#  Drawing itself:
+trx %>%
+  ggplot() +
+  aes(x = round, y = opinion, group = sID, col = factor(sID)) +
+  geom_line(show.legend = F) +
+  scale_color_viridis_d() +
+  labs(title = paste0(
+    "Seed = ", trx[1, "seed"],
+    ", Communication rate = ", trx[1, "communicationRate"], ", Forgetting/ memorizing = ", trx[1, "forgeting"],
+    ", Folding point = ", trx[1, "foldingPoint"], ",\nAmount of stored information = ", trx[1, "storing"],
+    ", Weight of reinforced opinion = ", trx[1, "meanWeight"], ", Latitude of acceptance = ", trx[1, "acceptanceAv"]
+  )) +
+  theme_classic()
+ggsave("individualSim.png", width = 10, height = 6)
+
+## Drawing extreme long hops:
+# Parameters:
+hopTreshold = 1.5
+backTreshold = 0.05
+
+# We create file which coins agents performing to big hops there and back:
+key = tr %>%
+  mutate(sID = 10000 * seed + ID) %>%
+  arrange(sID, round) %>%
+  group_by(sID) %>%
+  mutate(hop = opinion - lag(opinion), back = abs(hop + lead(hop))) %>%
+  ungroup %>%
+  filter(abs(hop) > hopTreshold, (back / abs(hop)) < backTreshold) %>%
+  select(sID) %>% unique()
+
+# Now we join data with the key and select just keyed cases:
+trx = tr %>%
+  mutate(sID = 10000 * seed + ID) %>%
+  arrange(sID) %>%
+  right_join(key)
+
+# Drawing extreme trajectories:
+trx %>%
+  ggplot() +
+  aes(x = round, y = opinion, group = sID, col = factor(sID)) +
+  geom_line(show.legend = F) +
+  scale_color_viridis_d() +
+  labs(title = paste0(
+    "Extreme hops (n=", nrow(trx) / 101,
+    "): We include all agents performing at least one extreme hop during sim.\n",
+    "Extreme hop = change of opinion between two rounds ('hop') by ", hopTreshold,
+    " and\nratio of sum of two consecutive 'hops' to original 'hop' ", backTreshold
+  )) +
+  theme_classic()
+ggsave("extremeCases.png", width = 10, height = 6)
 
 
 
