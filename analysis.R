@@ -26,41 +26,41 @@ library(philentropy)
 
 # Loading data ------------------------------------------------------------
 
-load("results_seeds_01-04.RData")
+load("DATA/results_seeds_01-04.RData")
 
 tb = results %>%
   drop_na() %>%
   filter(seed < 5)
 
-load("results_seeds_05-06.RData")
+load("DATA/results_seeds_05-06.RData")
 
 tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 7))
 
-load("results_seeds_07.RData")
+load("DATA/results_seeds_07.RData")
 
 tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 8))
 
-load("results_seeds_08.RData")
+load("DATA/results_seeds_08.RData")
 
 tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 9))
 
 
-load("results_seeds_09-11.RData")
+load("DATA/results_seeds_09-11.RData")
 
 tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 12, seed > 8)) %>% unique()
 
-load("results_seeds_12-13.RData")
+load("DATA/results_seeds_12-13.RData")
 
 tb = tb %>%
   add_row(results %>% drop_na() %>% filter(seed < 14, seed > 11))
 
 
 for (f in 14:50) {
-  load(paste0("results_seeds_", f, ".RData"))
+  load(paste0("DATA/results_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb = tb %>%
     add_row(results)
@@ -158,22 +158,22 @@ plot3d(x = ty$communicationRate, y = ty$foldingPoint, z = ty$manhattan, type = "
 
 ## Final plots
 # All polarization measures:
-png("01-allMeasures.png")
+png("PICS/01-allMeasures.png")
 tb %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("02-SD.png")
+png("PICS/02-SD.png")
 tx %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 86.7%)")
 dev.off()
 
-png("03-Manhattan.png")
+png("PICS/03-Manhattan.png")
 tx %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 95.8%)")
 dev.off()
 
-png("04-ESBG.png")
+png("PICS/04-ESBG.png")
 tx %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 76.0%)")
 dev.off()
@@ -220,11 +220,11 @@ stargazer(yb, ya, yc, type = "text", omit = 1:85,
 
 # Loading data ------------------------------------------------------------
 
-load("results2_seeds_1.RData")
+load("DATA/results2_seeds_1.RData")
 tb2 = results %>% drop_na()
 
 for (f in 2:50) {
-  load(paste0("results2_seeds_", f, ".RData"))
+  load(paste0("DATA/results2_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb2 = tb2 %>%
     add_row(results)
@@ -335,22 +335,22 @@ plot3d(x = ty2$SD_sd, y = ty2$manhattan_sd, z = ty2$ESBG_sd, type = "s", size = 
 
 ## Final plots
 # All polarization measures:
-png("11-allMeasures.png")
+png("PICS/11-allMeasures.png")
 tb2 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("12-SD.png")
+png("PICS/12-SD.png")
 tx2 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("13-Manhattan.png")
+png("PICS/13-Manhattan.png")
 tx2 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("14-ESBG.png")
+png("PICS/14-ESBG.png")
 tx2 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -453,8 +453,8 @@ ty2 %>%
   labs(title = "SD of polarization measures for each combination of parameters (w/ reinforcing)") +
   # labs(title = "SD of polarization measures for each combination of parameters (W/OUT reinforcing)") +
   theme_classic()
-ggsave("15-withReinforcingSD.png", width = 7.5, height = 5.5)
-# ggsave("16-withoutReinforcingSD.png", width = 7.5, height = 5.5)
+ggsave("PICS/15-withReinforcingSD.png", width = 7.5, height = 5.5)
+# ggsave("PICS/16-withoutReinforcingSD.png", width = 7.5, height = 5.5)
 
 # NOTE: That w/out reinforcing Manhattan is predicted same -- same R^2, fraction of
 #       maximum possible explained information and also the normalized mutual information.
@@ -494,7 +494,7 @@ tb3 = tb2 %>%
 
 # Adding data from the third experiment:
 for (f in 1:completedSeeds) {
-  load(paste0("results3_seeds_", f, ".RData"))
+  load(paste0("DATA/results3_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb3 = tb3 %>%
     add_row(results)
@@ -519,7 +519,7 @@ tb3 %>%
                   forget_sd), vars(Measure), scales = "free", labeller = "label_both") +
   geom_histogram(fill = "steelblue", alpha = 0.4) +
   theme_classic()
-# ggsave("00-try.png", height = 40, width = 6)
+# ggsave("PICS/00-try.png", height = 40, width = 6)
 
 # NOTE: Mhmmm... that's interesting -- there is decline of 'zero polarization' isle
 #       (ESBG==0, SD==0, Manhattan==0) with increase of 'forget_sd',
@@ -622,22 +622,22 @@ plot3d(x = ty3$SD, y = ty3$manhattan, z = ty2$ESBG, type = "s", size = .5, col =
 
 ## Final plots
 # All polarization measures:
-png("21-allMeasures.png")
+png("PICS/21-allMeasures.png")
 tb3 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("22-SD.png")
+png("PICS/22-SD.png")
 tx3 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("23-Manhattan.png")
+png("PICS/23-Manhattan.png")
 tx3 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("24-ESBG.png")
+png("PICS/24-ESBG.png")
 tx3 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -708,14 +708,14 @@ stargazer(yb3, ya3, yc3, type = "text", omit = 1:805,
 completedSeeds = 42
 
 # Loading results of the first seed
-load("results4_seeds_1.RData")
+load("DATA/results4_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb4 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results4_seeds_", f, ".RData"))
+  load(paste0("DATA/results4_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb4 = tb4 %>%
     add_row(results)
@@ -740,7 +740,7 @@ tb4 %>%
     folding_sd), vars(Measure), scales = "free", labeller = "label_both") +
   geom_histogram(fill = "steelblue", alpha = 0.4) +
   theme_classic()
-# ggsave("00-try.png", height = 49, width = 6)
+# ggsave("PICS/00-try.png", height = 49, width = 6)
 
 # NOTE: Mhmmm... Still it doesn't seem the diversity makes difference...
 #
@@ -836,22 +836,22 @@ plot3d(x = ty4$SD, y = ty4$manhattan, z = ty4$ESBG, type = "s", size = .5, col =
 
 ## Final plots
 # All polarization measures:
-png("31-allMeasures.png")
+png("PICS/31-allMeasures.png")
 tb4 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("32-SD.png")
+png("PICS/32-SD.png")
 tx4 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("33-Manhattan.png")
+png("PICS/33-Manhattan.png")
 tx4 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("34-ESBG.png")
+png("PICS/34-ESBG.png")
 tx4 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -907,14 +907,14 @@ stargazer(yb4, ya4, yc4, type = "text", omit = 1:805,
 completedSeeds = 48
 
 # Loading results of the first seed
-load("results5_seeds_1.RData")
+load("DATA/results5_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb5 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results5_seeds_", f, ".RData"))
+  load(paste0("DATA/results5_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb5 = tb5 %>%
     add_row(results)
@@ -939,7 +939,7 @@ tb5 %>%
     neis_sd), vars(Measure), scales = "free", labeller = "label_both") +
   geom_histogram(fill = "steelblue", alpha = 0.4) +
   theme_classic()
-# ggsave("00-try.png", height = 49, width = 6)
+# ggsave("PICS/00-try.png", height = 49, width = 6)
 
 # NOTE: Mhmmm... Still it doesn't seem the diversity makes difference...
 #
@@ -1038,22 +1038,22 @@ plot3d(x = ty5$SD, y = ty5$manhattan, z = ty5$ESBG, type = "s", size = .5, col =
 
 ## Final plots
 # All polarization measures:
-png("41-allMeasures.png")
+png("PICS/41-allMeasures.png")
 tb5 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("42-SD.png")
+png("PICS/42-SD.png")
 tx5 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("43-Manhattan.png")
+png("PICS/43-Manhattan.png")
 tx5 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("44-ESBG.png")
+png("PICS/44-ESBG.png")
 tx5 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -1113,14 +1113,14 @@ stargazer(yb5, ya5, yc5, type = "text", omit = 1:805,
 completedSeeds = 48
 
 # Loading results of the first seed
-load("results6_seeds_1.RData")
+load("DATA/results6_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb6 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results6_seeds_", f, ".RData"))
+  load(paste0("DATA/results6_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb6 = tb6 %>%
     add_row(results)
@@ -1265,22 +1265,22 @@ plot3d(x = ty6$SD, y = ty6$manhattan, z = ty6$ESBG, type = "s", size = .5, col =
 
 ## Final plots
 # All polarization measures:
-png("51-allMeasures.png")
+png("PICS/51-allMeasures.png")
 tb6 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("52-SD.png")
+png("PICS/52-SD.png")
 tx6 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("53-Manhattan.png")
+png("PICS/53-Manhattan.png")
 tx6 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("54-ESBG.png")
+png("PICS/54-ESBG.png")
 tx6 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -1341,14 +1341,14 @@ stargazer(yb6, ya6, yc6, type = "text", omit = 1:805,
 completedSeeds = 50
 
 # Loading results of the first seed
-load("results7_seeds_1.RData")
+load("DATA/results7_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb7 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results7_seeds_", f, ".RData"))
+  load(paste0("DATA/results7_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb7 = tb7 %>%
     add_row(results)
@@ -1483,22 +1483,22 @@ plot3d(x = ty7$SD, y = ty7$manhattan, z = ty7$ESBG, type = "s", size = .5, col =
 
 ## Final plots
 # All polarization measures:
-png("61-allMeasures.png")
+png("PICS/61-allMeasures.png")
 tb7 %>%  select(manhattan, SD, ESBG) %>%
   scatterplot3d(highlight.3d = T, main = "All polarization measures")
 dev.off()
 
-png("62-SD.png")
+png("PICS/62-SD.png")
 tx7 %>%  select(forgeting, communicationRate, pra) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: SD", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
 
-png("63-Manhattan.png")
+png("PICS/63-Manhattan.png")
 tx7 %>%  select(forgeting, communicationRate, prb) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: Manhattan", zlab = "Prediction (R^2: 99.9%)")
 dev.off()
 
-png("64-ESBG.png")
+png("PICS/64-ESBG.png")
 tx7 %>%  select(forgeting, communicationRate, prc) %>%
   scatterplot3d(highlight.3d = T, main = "Polarization measure: ESBG", zlab = "Prediction (R^2: 98.8%)")
 dev.off()
@@ -1561,14 +1561,14 @@ stargazer(yb7, ya7, yc7, type = "text", omit = 1:805,
 completedSeeds = 50
 
 # Loading results of the first seed
-load("results8_seeds_1.RData")
+load("DATA/results8_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb8 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results8_seeds_", f, ".RData"))
+  load(paste0("DATA/results8_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb8 = tb8 %>%
     add_row(results)
@@ -1674,7 +1674,7 @@ do %>%
        subtitle = "Scenrios apparently differ", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
   theme_light()
-ggsave("distributions.png", width = 7, height = 6)
+ggsave("PICS/distributions.png", width = 7, height = 6)
 
 
 do %>%
@@ -1696,14 +1696,14 @@ do %>%
 completedSeeds = 38
 
 # Loading results of the first seed
-load("results9_seeds_1.RData")
+load("DATA/results9_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb9 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results9_seeds_", f, ".RData"))
+  load(paste0("DATA/results9_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb9 = tb9 %>%
     add_row(results)
@@ -1839,7 +1839,7 @@ df %>%
   scale_x_continuous(breaks = (-5:1) * 0.200) +
   labs(title = "Distribution of final average opinion") +
   theme_light()
-ggsave("distributions_exp9b.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp9b.png", width = 7, height = 6)
 
 
 do %>%
@@ -1856,7 +1856,7 @@ do %>%
   scale_y_continuous(breaks = (0:5) * 200) +
   labs(title = "Distribution of counts of extreme negative and positive opinions") +
   theme_light()
-ggsave("distributions_exp9c.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp9c.png", width = 7, height = 6)
 
 
 
@@ -1927,14 +1927,14 @@ stargazer(yb9, ya9, yc9, type = "text", omit = 1:805,
 completedSeeds = 232
 
 # Loading results of the first seed
-load("results10_seeds_1.RData")
+load("PICS/results10_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb10 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results10_seeds_", f, ".RData"))
+  load(paste0("PICS/results10_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb10 = tb10 %>%
     add_row(results)
@@ -2075,7 +2075,7 @@ do %>%
        subtitle = "Acceptance apparently brings some kind of symmetry", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
   theme_light()
-ggsave("distributions_exp10.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp10.png", width = 7, height = 6)
 
 # Checking distribution of final opinion
 df %>%
@@ -2087,7 +2087,7 @@ df %>%
   scale_x_continuous(breaks = (-5:2) * 0.200) +
   labs(title = "Distribution of final average opinion") +
   theme_light()
-ggsave("distributions_exp10a.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp10a.png", width = 7, height = 6)
 
 
 do %>%
@@ -2104,7 +2104,7 @@ do %>%
   scale_y_continuous(breaks = (0:5) * 200) +
   labs(title = "Distribution of counts of extreme negative and positive opinions") +
   theme_light()
-ggsave("distributions_exp10b.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp10b.png", width = 7, height = 6)
 
 
 
@@ -2131,7 +2131,7 @@ bp %>%
        caption = "'Black Pete result': at least 30% of agents are extremely positive (opinion >=0.5) and\nthere are at least of 25% more extremely positive than extremely negative agents\n'Reversed Pete Result' is ther way round than 'Black Pete Result'.") +
   theme_classic() +
   theme(legend.position = "bottom")
-ggsave("blackPete_exp10_ESBG.png", width = 7, height = 6)
+ggsave("PICS/blackPete_exp10_ESBG.png", width = 7, height = 6)
 
 # Which parameters predict 'Black Pete Result'?
 model = glm(blackPete~foldingPoint*communicationRate*forgeting*acceptanceAv, family="binomial", data=bp)
@@ -2154,7 +2154,7 @@ sbp %>%
   geom_col(position = position_dodge()) +
   labs(y = "probability of 'Black Pete Result'") +
   theme_classic()
-ggsave("blackPete_exp10_params.png", width = 7, height = 6)
+ggsave("PICS/blackPete_exp10_params.png", width = 7, height = 6)
 
 
 
@@ -2237,17 +2237,17 @@ stargazer(yb10, zb9, ya10, za9, yc10, zc9, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 8
+completedSeeds = 11
 
 # Loading results of the first seed
-load("results11_seeds_1.RData")
+load("DATA/results11_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb11 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results11_seeds_", f, ".RData"))
+  load(paste0("DATA/results11_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb11 = tb11 %>%
     add_row(results)
@@ -2366,7 +2366,7 @@ do %>%
        subtitle = "Acceptance apparently brings some kind of symmetry", y = "Count of simulations",
        x = "How many extreme agents we spotted in the simulation?") +
   theme_light()
-ggsave("distributions_exp11.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp11.png", width = 7, height = 6)
 
 # Checking distribution of final opinion
 df %>%
@@ -2378,7 +2378,7 @@ df %>%
   scale_x_continuous(breaks = (-5:2) * 0.200) +
   labs(title = "Distribution of final average opinion") +
   theme_light()
-ggsave("distributions_exp11a.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp11a.png", width = 7, height = 6)
 
 
 do %>%
@@ -2395,7 +2395,7 @@ do %>%
   scale_y_continuous(breaks = (0:5) * 200) +
   labs(title = "Distribution of counts of extreme negative and positive opinions") +
   theme_light()
-ggsave("distributions_exp11b.png", width = 7, height = 6)
+ggsave("PICS/distributions_exp11b.png", width = 7, height = 6)
 
 
 
@@ -2414,7 +2414,7 @@ bp %>%
        caption = "'Black Pete result': at least 30% of agents are extremely positive (opinion >=0.5) and\nthere are at least of 25% more extremely positive than extremely negative agents.") +
   theme_classic() +
   theme(legend.position = "bottom")
-ggsave("blackPete_exp11_ESBG.png", width = 7, height = 6)
+ggsave("PICS/blackPete_exp11_ESBG.png", width = 7, height = 6)
 
 # Which parameters predict 'Black Pete Result'?
 model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv, family="binomial", data=bp)
@@ -2435,7 +2435,7 @@ sbp %>%
   geom_col(position = position_dodge()) +
   labs(y = "probability of 'Black Pete Result'") +
   theme_classic()
-ggsave("blackPete_exp11_params.png", width = 7, height = 6)
+ggsave("PICS/blackPete_exp11_params.png", width = 7, height = 6)
 
 
 
@@ -2506,17 +2506,17 @@ stargazer(yb11, zb11, ya11, za11, yc11, zc11, type = "text", omit = 1:805,
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 15
+completedSeeds = 22
 
 # Loading results of the first seed
-load("results12_seeds_1.RData")
+load("DATA/results12_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb12 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results12_seeds_", f, ".RData"))
+  load(paste0("DATA/results12_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb12 = tb12 %>%
     add_row(results)
@@ -2714,17 +2714,17 @@ plot3d(x = df$acceptanceAv, y = df$meanWeight, z = df$Sum_mean, type = "s", size
 # Loading data ------------------------------------------------------------
 
 # Useful constant -- how many seeds are completely simulated:
-completedSeeds = 43
+completedSeeds = 96
 
 # Loading results of the first seed
-load("results13_seeds_1.RData")
+load("DATA/results13_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb13 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("results13_seeds_", f, ".RData"))
+  load(paste0("DATA/results13_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb13 = tb13 %>%
     add_row(results)
@@ -2747,7 +2747,7 @@ tr  = tibble(ID = -1, infoPos = -1, infoNeg = -1, attention = -1, opinion = -1,
 # Loading cycle:
 for (s in 1:completedSeeds) {
   for (sim in 1:100) {
-    load(paste0("record13_seeds_", s, "_sim_", sim, ".RData"))
+    load(paste0("DATA/record13_seeds_", s, "_sim_", sim, ".RData"))
     tr = tr %>% add_row(record)
   }
 }
@@ -3125,7 +3125,7 @@ bp = do %>% rename(Negative = 11, Positive = 12) %>%
 sum(bp$blackPete) / nrow(bp)
 
 # Which parameters predict 'Black Pete Result'?
-bpx = bp %>% mutate(across(2:7, ~ (round(.x / 2, 1) * 2)  %>% factor()))
+bpx = bp %>% mutate(across(2:7, ~ (round(.x , 1))  %>% factor()))
 # model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv+storing+meanWeight, family="binomial", data=bpx)
 # options(scipen=999)
 # summary(model)
@@ -3166,8 +3166,9 @@ sbp %>%
   geom_col(alpha = 0.7, position = position_dodge(preserve = "single")) +
   labs(y = "probability of 'Black Pete Result'") +
   scale_fill_viridis_d(option = "D") +
-  theme_light()
-ggsave("blackPete_exp13_params.png", width = 7, height = 6)
+  theme_light() +
+  theme(legend.position = "bottom")
+ggsave("PICS/blackPete_exp13_params.png", width = 18, height = 10)
 
 
 
@@ -3176,8 +3177,8 @@ sbp %>%
   ggplot() +
   aes(x = blackPete) +
   geom_histogram(fill = "skyblue", alpha = 0.8) +
-  # scale_y_log10() +
-  # scale_x_log10() +
+  scale_y_log10() +
+  scale_x_log10() +
   theme_light()
 # Graph says 'No...'
 
