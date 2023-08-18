@@ -425,7 +425,7 @@ startTime = Sys.time()
 SIM = 0
 y1 = rep(-1, 11); y2 = y1; y3 = y1; y4 = y1; y5 = y1; y6 = y1
 x1 = y1; x2 = y1; x3 = y1; x4 = y1; x5 = y1; x6 = y1
-for (stemSeed in c(49:400)) {
+for (stemSeed in c(97:400)) {
   # Creating empty tibble for storing results:
   results = tibble(seed = NA_integer_, opDistribution = NA_character_, reinforce = NA,
                    communicationRate = NA_real_, forgeting = NA_real_, storing = 0,
