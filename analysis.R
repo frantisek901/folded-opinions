@@ -1927,14 +1927,14 @@ stargazer(yb9, ya9, yc9, type = "text", omit = 1:805,
 completedSeeds = 232
 
 # Loading results of the first seed
-load("PICS/results10_seeds_1.RData")
+load("DATA/results10_seeds_1.RData")
 
 # Preparing base of 'tb4' from 'results'
 tb10 = results %>% drop_na()
 
 # Adding data from the third experiment:
 for (f in 2:completedSeeds) {
-  load(paste0("PICS/results10_seeds_", f, ".RData"))
+  load(paste0("DATA/results10_seeds_", f, ".RData"))
   results =  results %>% drop_na()
   tb10 = tb10 %>%
     add_row(results)
@@ -2128,13 +2128,13 @@ bp %>%
   aes(x = ESBG, fill = Pete) +
   geom_density(alpha = 0.6, binwidth = 0.03) +
   labs(title = "Distribution of ESBG of simulations\naccording fullfilling 'Black Pete result'",
-       caption = "'Black Pete result': at least 30% of agents are extremely positive (opinion >=0.5) and\nthere are at least of 25% more extremely positive than extremely negative agents\n'Reversed Pete Result' is ther way round than 'Black Pete Result'.") +
+       caption = "'Black Pete result': at least 30% of agents are extremely positive (opinion >=0.5) and\nthere are at least of 25% more extremely positive than extremely negative agents\n'Reversed Pete Result' is other way round than 'Black Pete Result'.") +
   theme_classic() +
   theme(legend.position = "bottom")
 ggsave("PICS/blackPete_exp10_ESBG.png", width = 7, height = 6)
 
 # Which parameters predict 'Black Pete Result'?
-model = glm(blackPete~foldingPoint*communicationRate*forgeting*acceptanceAv, family="binomial", data=bp)
+model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv, family="binomial", data=bp)
 options(scipen=999)
 summary(model)
 pscl::pR2(model)["McFadden"]
@@ -2873,7 +2873,7 @@ plot3d(x = df$communicationRate, y = df$forgeting, z = df$Sum_mean, type = "s", 
 # Communicattion VS Folding --------------------------------------------
 
 df = jd %>%
-  # mutate(across(2:7, ~round(.x, 1))) %>%
+  mutate(across(c(1, 3:7), ~round(.x, 1))) %>%
   group_by(communicationRate, foldingPoint) %>%
   summarise(across(SD:Sum, list(mean = mean, sd = sd), .names = "{.col}_{.fn}")) %>%
   arrange(Opinion_mean)
@@ -3125,26 +3125,26 @@ bp = do %>% rename(Negative = 11, Positive = 12) %>%
 sum(bp$blackPete) / nrow(bp)
 
 # Which parameters predict 'Black Pete Result'?
-bpx = bp %>% mutate(across(2:7, ~ (round(.x , 1))  %>% factor()))
+bpx = bp %>% mutate(across(2:7, ~ (round(.x * 5, 0) / 5)  %>% factor()))
 # model = glm(blackPete~foldingPoint+communicationRate+forgeting+acceptanceAv+storing+meanWeight, family="binomial", data=bpx)
 # options(scipen=999)
 # summary(model)
 # bp[,2:7] %>% summary()
 
-# Graph represinting these parameters' influence:
+# Graph representing these parameters' influence:
 sbp = bpx %>% group_by(foldingPoint,
-                       #communicationRate,
-                       forgeting,
+                       # communicationRate,
+                       # forgeting,
                        storing,
-                       # meanWeight,
+                       meanWeight,
                        acceptanceAv) %>%
   mutate(N = n()) %>%
   group_by(foldingPoint,
            # communicationRate,
-           forgeting,
+           # forgeting,
            acceptanceAv,
            storing,
-           # meanWeight,
+           meanWeight,
            N) %>%
   summarise(blackPete = sum(blackPete)) %>% ungroup() %>%
   mutate(p = round(100 * blackPete / N, 1),
@@ -3159,8 +3159,8 @@ sbp %>%
   facet_grid(rows = vars(#communicationRate,
                          acceptanceAv
                          ),
-             cols = vars(forgeting#,
-                         # meanWeight
+             cols = vars(#forgeting#,
+                         meanWeight
                          ),
              labeller = 'label_both') +
   geom_col(alpha = 0.7, position = position_dodge(preserve = "single")) +
